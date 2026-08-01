@@ -18,6 +18,7 @@ export function ModalTexto({
   valorInicial = '',
   placeholder,
   multilinha = true,
+  teclado = 'default',
   exigeTexto = false,
   rotuloSalvar = 'Salvar',
   aoSalvar,
@@ -29,6 +30,7 @@ export function ModalTexto({
   valorInicial?: string;
   placeholder?: string;
   multilinha?: boolean;
+  teclado?: 'default' | 'numeric';
   /** Quando verdadeiro, o botão de salvar fica inativo com o campo vazio. */
   exigeTexto?: boolean;
   rotuloSalvar?: string;
@@ -72,6 +74,7 @@ export function ModalTexto({
                   aoMudar={setTexto}
                   placeholder={placeholder}
                   multilinha={multilinha}
+                  teclado={teclado}
                   autoFoco
                 />
 

@@ -1,14 +1,23 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 
 import { CabecalhoPilha } from '@/components/cabecalho-pilha';
 import { Cartao, EstadoVazio, Metrica, Separador } from '@/components/ui/basicos';
 import { BotaoIcone } from '@/components/ui/botao';
+import { MenuOpcoes } from '@/components/ui/menu-opcoes';
+import { ModalTexto } from '@/components/ui/modal-texto';
 import { Tela } from '@/components/ui/tela';
 import { cores } from '@/constants/tema';
-import { detalheDoTreino, excluirTreino, type DetalheTreino } from '@/db/consultas/treinos';
+import {
+  atualizarNotasDoTreino,
+  corrigirDuracao,
+  detalheDoTreino,
+  excluirTreino,
+  renomearTreino,
+  type DetalheTreino,
+} from '@/db/consultas/treinos';
 import * as fmt from '@/lib/formato';
 
 export default function TelaDetalheTreino() {
@@ -18,18 +27,18 @@ export default function TelaDetalheTreino() {
 
   const [detalhe, setDetalhe] = useState<DetalheTreino | null>(null);
   const [carregando, setCarregando] = useState(true);
+  const [menuAberto, setMenuAberto] = useState(false);
+  const [editando, setEditando] = useState<'nome' | 'duracao' | 'notas' | null>(null);
+
+  const recarregar = useCallback(async () => {
+    const d = await detalheDoTreino(treinoId);
+    setDetalhe(d);
+    setCarregando(false);
+  }, [treinoId]);
 
   useEffect(() => {
-    let ativo = true;
-    detalheDoTreino(treinoId).then((d) => {
-      if (!ativo) return;
-      setDetalhe(d);
-      setCarregando(false);
-    });
-    return () => {
-      ativo = false;
-    };
-  }, [treinoId]);
+    void recarregar();
+  }, [recarregar]);
 
   function confirmarExclusao() {
     Alert.alert('Excluir treino', 'Este registro sairá do seu histórico. Não pode ser desfeito.', [
@@ -63,10 +72,9 @@ export default function TelaDetalheTreino() {
         subtitulo={fmt.dataRelativa(detalhe.treino.iniciadoEm)}
         acao={
           <BotaoIcone
-            icone="trash"
-            cor={cores.destaqueTexto}
-            acessibilidade="Excluir treino"
-            aoTocar={confirmarExclusao}
+            icone="ellipsis-horizontal"
+            acessibilidade="Opções do treino"
+            aoTocar={() => setMenuAberto(true)}
           />
         }
       />
@@ -116,6 +124,76 @@ export default function TelaDetalheTreino() {
           </Cartao>
         ))}
       </ScrollView>
+
+      <MenuOpcoes
+        visivel={menuAberto}
+        titulo={detalhe.treino.nome}
+        subtitulo={fmt.dataRelativa(detalhe.treino.iniciadoEm)}
+        opcoes={[
+          { rotulo: 'Renomear treino', icone: 'text-outline', aoTocar: () => setEditando('nome') },
+          {
+            rotulo: 'Corrigir duração',
+            icone: 'time-outline',
+            aoTocar: () => setEditando('duracao'),
+          },
+          {
+            rotulo: 'Notas do treino',
+            icone: 'document-text-outline',
+            aoTocar: () => setEditando('notas'),
+          },
+          {
+            rotulo: 'Excluir treino',
+            icone: 'trash-outline',
+            destrutiva: true,
+            aoTocar: confirmarExclusao,
+          },
+        ]}
+        aoFechar={() => setMenuAberto(false)}
+      />
+
+      <ModalTexto
+        visivel={editando === 'nome'}
+        titulo="Nome do treino"
+        valorInicial={detalhe.treino.nome}
+        multilinha={false}
+        exigeTexto
+        placeholder="Ex.: Push A"
+        aoSalvar={async (t) => {
+          await renomearTreino(treinoId, t);
+          await recarregar();
+        }}
+        aoFechar={() => setEditando(null)}
+      />
+
+      <ModalTexto
+        visivel={editando === 'duracao'}
+        titulo="Duração em minutos"
+        descricao="Use isto quando esquecer de finalizar o treino na hora."
+        valorInicial={String(Math.round(detalhe.treino.duracaoSegundos / 60))}
+        multilinha={false}
+        teclado="numeric"
+        exigeTexto
+        placeholder="Ex.: 65"
+        aoSalvar={async (t) => {
+          const minutos = Number(t.replace(',', '.'));
+          if (!Number.isFinite(minutos) || minutos < 0) return;
+          await corrigirDuracao(treinoId, minutos);
+          await recarregar();
+        }}
+        aoFechar={() => setEditando(null)}
+      />
+
+      <ModalTexto
+        visivel={editando === 'notas'}
+        titulo="Notas do treino"
+        valorInicial={detalhe.treino.notas ?? ''}
+        placeholder="Como foi o treino, energia, dores, o que ajustar"
+        aoSalvar={async (t) => {
+          await atualizarNotasDoTreino(treinoId, t);
+          await recarregar();
+        }}
+        aoFechar={() => setEditando(null)}
+      />
     </Tela>
   );
 }

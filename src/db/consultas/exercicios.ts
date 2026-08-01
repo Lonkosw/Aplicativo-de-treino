@@ -71,6 +71,26 @@ export async function criarExercicio(dados: {
   return criado;
 }
 
+export async function atualizarExercicio(
+  id: number,
+  dados: {
+    nome: string;
+    grupoMuscularPrimario: string;
+    equipamento: string;
+    instrucoes?: string | null;
+  },
+) {
+  await db
+    .update(exercicios)
+    .set({
+      nome: dados.nome.trim(),
+      grupoMuscularPrimario: dados.grupoMuscularPrimario,
+      equipamento: dados.equipamento,
+      instrucoes: dados.instrucoes?.trim() || null,
+    })
+    .where(eq(exercicios.id, id));
+}
+
 export async function atualizarDescanso(exercicioId: number, segundos: number) {
   await db
     .update(exercicios)

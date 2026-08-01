@@ -7,6 +7,7 @@ import { CabecalhoPilha } from '@/components/cabecalho-pilha';
 import { GraficoLinha, type PontoGrafico } from '@/components/grafico-linha';
 import { Cartao, EstadoVazio, Etiqueta, Metrica, Separador } from '@/components/ui/basicos';
 import { BotaoIcone } from '@/components/ui/botao';
+import { MenuOpcoes } from '@/components/ui/menu-opcoes';
 import { Tela } from '@/components/ui/tela';
 import { ALVO_TOQUE, cores } from '@/constants/tema';
 import {
@@ -48,6 +49,7 @@ export default function TelaExercicio() {
   const [progressao, setProgressao] = useState<PontoProgressao[]>([]);
   const [metrica, setMetrica] = useState<Metrica3>('peso');
   const [carregando, setCarregando] = useState(true);
+  const [menuAberto, setMenuAberto] = useState(false);
 
   // `useFocusEffect` e não `useEffect`: ao voltar de um treino, a tela já
   // está montada e precisa recarregar. Não há "route change" como na web.
@@ -133,10 +135,9 @@ export default function TelaExercicio() {
         acao={
           exercicio.ehCustomizado ? (
             <BotaoIcone
-              icone="trash"
-              cor={cores.destaqueTexto}
-              acessibilidade="Excluir exercício"
-              aoTocar={confirmarExclusao}
+              icone="ellipsis-horizontal"
+              acessibilidade="Opções do exercício"
+              aoTocar={() => setMenuAberto(true)}
             />
           ) : undefined
         }
@@ -261,6 +262,25 @@ export default function TelaExercicio() {
           )}
         </View>
       </ScrollView>
+
+      <MenuOpcoes
+        visivel={menuAberto}
+        titulo={exercicio.nome}
+        opcoes={[
+          {
+            rotulo: 'Editar exercício',
+            icone: 'create-outline',
+            aoTocar: () => router.push(`/exercicio/novo?id=${exercicio.id}`),
+          },
+          {
+            rotulo: 'Excluir exercício',
+            icone: 'trash-outline',
+            destrutiva: true,
+            aoTocar: confirmarExclusao,
+          },
+        ]}
+        aoFechar={() => setMenuAberto(false)}
+      />
     </Tela>
   );
 }

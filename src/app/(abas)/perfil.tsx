@@ -113,10 +113,10 @@ export default function TelaPerfil() {
               <Metrica valor={String(totais.treinos)} rotulo="Treinos" />
               <Metrica
                 valor={String(totais.sequenciaSemanas)}
-                rotulo={totais.sequenciaSemanas === 1 ? 'semana seguida' : 'semanas seguidas'}
+                rotulo={totais.sequenciaSemanas === 1 ? 'semana' : 'semanas'}
                 destaque={totais.sequenciaSemanas > 0}
               />
-              <Metrica valor={fmt.duracaoCurta(totais.segundos)} rotulo="Tempo total" />
+              <Metrica valor={fmt.duracaoCurta(totais.segundos)} rotulo="Tempo" />
             </View>
             <View className="mt-3 border-t border-borda pt-3">
               <Text className="text-center text-[13px] text-texto3">
@@ -124,6 +124,19 @@ export default function TelaPerfil() {
               </Text>
             </View>
           </Cartao>
+        </View>
+
+        <View className="px-5">
+          <Pressable
+            onPress={() => router.push('/historico')}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir histórico completo de treinos"
+            style={{ minHeight: 56 }}
+            className="flex-row items-center gap-3 rounded-2xl border border-borda bg-superficie px-4 active:bg-superficie2">
+            <Ionicons name="time-outline" size={20} color={cores.texto2} />
+            <Text className="flex-1 text-[15px] font-semibold text-texto">Histórico completo</Text>
+            <Ionicons name="chevron-forward" size={16} color={cores.texto3} />
+          </Pressable>
         </View>
 
         <View className="px-5">
@@ -175,16 +188,6 @@ export default function TelaPerfil() {
           </Cartao>
         </View>
 
-        <View className="px-5">
-          <Pressable
-            onPress={() => router.push('/historico')}
-            style={{ minHeight: 56 }}
-            className="flex-row items-center gap-3 rounded-2xl border border-borda bg-superficie px-4 active:bg-superficie2">
-            <Ionicons name="time-outline" size={20} color={cores.texto2} />
-            <Text className="flex-1 text-[15px] font-semibold text-texto">Histórico completo</Text>
-            <Ionicons name="chevron-forward" size={16} color={cores.texto3} />
-          </Pressable>
-        </View>
       </ScrollView>
     </Tela>
   );

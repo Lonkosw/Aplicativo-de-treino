@@ -388,6 +388,17 @@ export async function obterTreino(treinoId: number) {
   return linha ?? null;
 }
 
+/**
+ * Corrige a duração de um treino já finalizado.
+ *
+ * Existe porque esquecer de tocar em "Finalizar" é comum: o cronômetro
+ * conta desde o início e o treino entra no histórico com 14 horas.
+ */
+export async function corrigirDuracao(treinoId: number, minutos: number) {
+  const segundos = Math.max(0, Math.round(minutos * 60));
+  await db.update(treinos).set({ duracaoSegundos: segundos }).where(eq(treinos.id, treinoId));
+}
+
 export async function excluirTreino(treinoId: number) {
   await db.delete(treinos).where(eq(treinos.id, treinoId));
 }

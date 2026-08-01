@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
-import { BotaoIcone } from '@/components/ui/botao';
+import { Botao, BotaoIcone } from '@/components/ui/botao';
 import { CampoBusca, EstadoVazio, FiltroChips } from '@/components/ui/basicos';
 import { LinhaExercicio } from '@/components/linha-exercicio';
 import { Tela, TituloTela } from '@/components/ui/tela';
@@ -79,7 +79,16 @@ export default function TelaExercicios() {
           <EstadoVazio
             icone="search"
             titulo="Nenhum exercício encontrado"
-            descricao="Ajuste a busca ou os filtros, ou crie um exercício customizado."
+            descricao="Ajuste a busca ou os filtros — ou crie o seu."
+            acao={
+              <View className="mt-2 w-56">
+                <Botao
+                  titulo="Criar exercício"
+                  icone="add"
+                  aoTocar={() => router.push('/exercicio/novo')}
+                />
+              </View>
+            }
           />
         }
       />
