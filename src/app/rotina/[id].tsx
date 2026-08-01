@@ -160,7 +160,7 @@ export default function TelaEditorRotina() {
   if (carregando) return <Tela />;
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha
         titulo="Editar rotina"
         subtitulo={fmt.plural(itens.length, 'exercício', 'exercícios')}

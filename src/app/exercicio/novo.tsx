@@ -63,7 +63,7 @@ export default function TelaNovoExercicio() {
   }
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha titulo="Novo exercício" />
       {/* No Android o teclado cobre os campos de baixo; este wrapper empurra
           o conteúdo. Na web o navegador faz isso sozinho. */}

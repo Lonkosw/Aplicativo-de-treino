@@ -49,7 +49,7 @@ export default function TelaDetalheTreino() {
 
   if (!detalhe) {
     return (
-      <Tela>
+      <Tela edges={['top', 'bottom']}>
         <CabecalhoPilha titulo="Treino" />
         <EstadoVazio icone="alert-circle" titulo="Treino não encontrado" />
       </Tela>
@@ -57,7 +57,7 @@ export default function TelaDetalheTreino() {
   }
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha
         titulo={detalhe.treino.nome}
         subtitulo={fmt.dataRelativa(detalhe.treino.iniciadoEm)}

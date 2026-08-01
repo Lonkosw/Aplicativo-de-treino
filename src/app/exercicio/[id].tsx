@@ -114,7 +114,7 @@ export default function TelaExercicio() {
 
   if (!exercicio) {
     return (
-      <Tela>
+      <Tela edges={['top', 'bottom']}>
         <CabecalhoPilha titulo="Exercício" />
         <EstadoVazio icone="alert-circle" titulo="Exercício não encontrado" />
       </Tela>
@@ -122,7 +122,7 @@ export default function TelaExercicio() {
   }
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha
         titulo={exercicio.nome}
         subtitulo={`${exercicio.grupoMuscularPrimario} · ${exercicio.equipamento}`}
@@ -178,7 +178,7 @@ export default function TelaExercicio() {
               </Pressable>
             ))}
           </View>
-          <GraficoLinha pontos={pontos} sufixo={metrica === 'volume' ? '' : ''} />
+          <GraficoLinha pontos={pontos} />
         </Cartao>
 
         {/* Descanso padrão */}

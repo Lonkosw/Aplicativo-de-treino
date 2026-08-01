@@ -42,10 +42,6 @@ export function queryEquipamentos() {
     .orderBy(asc(exercicios.equipamento));
 }
 
-export function queryExercicio(id: number) {
-  return db.select().from(exercicios).where(eq(exercicios.id, id)).limit(1);
-}
-
 export async function obterExercicio(id: number) {
   const [linha] = await db.select().from(exercicios).where(eq(exercicios.id, id)).limit(1);
   return linha ?? null;

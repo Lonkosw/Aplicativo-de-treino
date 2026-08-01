@@ -7,15 +7,39 @@
     "scheme": "treino",
     "userInterfaceStyle": "dark",
     "backgroundColor": "#0A0A0B",
+    "icon": "./assets/icone.png",
     "android": {
       "package": "com.lonkosw.treino",
       "predictiveBackGestureEnabled": false,
-      "edgeToEdgeEnabled": true
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0A0B",
+        "foregroundImage": "./assets/icone-adaptativo.png",
+        "monochromeImage": "./assets/icone-monocromatico.png"
+      }
     },
     "web": {
-      "output": "static"
+      "output": "static",
+      "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-sqlite", "expo-sharing", "expo-notifications"],
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#E11D2B"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0A0A0B",
+          "image": "./assets/splash.png",
+          "imageWidth": 140
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

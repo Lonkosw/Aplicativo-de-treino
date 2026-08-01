@@ -62,7 +62,7 @@ export default function TelaResumo() {
   );
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}>
         <View className="items-center gap-1 pt-6">
           <Ionicons name="checkmark-circle" size={52} color={cores.destaque} />

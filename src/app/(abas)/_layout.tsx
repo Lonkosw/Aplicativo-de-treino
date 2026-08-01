@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router/js-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { cores } from '@/constants/tema';
 
@@ -9,6 +10,11 @@ import { cores } from '@/constants/tema';
  * sistema e não aceitam esse nível de customização.
  */
 export default function LayoutAbas() {
+  // Com edge-to-edge o app desenha por baixo da barra de gestos. Definir uma
+  // altura fixa esconderia parte da barra de abas atrás dela, então a altura
+  // soma o inset inferior do aparelho.
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -19,9 +25,9 @@ export default function LayoutAbas() {
           backgroundColor: cores.superficie,
           borderTopColor: cores.borda,
           borderTopWidth: 1,
-          height: 62,
+          height: 60 + insets.bottom,
           paddingTop: 6,
-          paddingBottom: 8,
+          paddingBottom: 6 + insets.bottom,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}>

@@ -20,6 +20,7 @@ import { recordesDoExercicio, seriesDoTreinoAnterior } from '@/db/consultas/exer
 import {
   adicionarSerie,
   atualizarNotasDoExercicio,
+  atualizarNotasDoTreino,
   atualizarSerie,
   descartarTreino,
   finalizarTreino,
@@ -30,6 +31,7 @@ import {
   removerExercicioDoTreino,
   removerSerie,
   renomearTreino,
+  reordenarExerciciosDoTreino,
   type ItemTreino,
 } from '@/db/consultas/treinos';
 import type { TipoSerie } from '@/db/schema';
@@ -66,6 +68,8 @@ export default function TelaTreinoAtivo() {
   const [finalizando, setFinalizando] = useState(false);
   const [menuSerie, setMenuSerie] = useState<{ item: ItemTreino; serie: SerieDaTela } | null>(null);
   const [menuExercicio, setMenuExercicio] = useState<ItemTreino | null>(null);
+  const [menuTreino, setMenuTreino] = useState(false);
+  const [editandoNotas, setEditandoNotas] = useState(false);
 
   const definirSequencia = usarTreinoAtivo((s) => s.definirSequencia);
   const definirBase = usarTreinoAtivo((s) => s.definirBase);
@@ -191,6 +195,16 @@ export default function TelaTreinoAtivo() {
       ]
     : [];
 
+  /** Troca de posição com o vizinho e grava a ordem inteira. */
+  function moverExercicio(item: ItemTreino, direcao: -1 | 1) {
+    const atual = listaItens.findIndex((i) => i.id === item.id);
+    const destino = atual + direcao;
+    if (atual < 0 || destino < 0 || destino >= listaItens.length) return;
+    const nova = [...listaItens];
+    [nova[atual], nova[destino]] = [nova[destino], nova[atual]];
+    reordenarExerciciosDoTreino(nova.map((i) => i.id));
+  }
+
   const opcoesExercicio: Opcao[] = menuExercicio
     ? [
         {
@@ -198,6 +212,24 @@ export default function TelaTreinoAtivo() {
           icone: 'document-text-outline',
           aoTocar: () => setItemEmNotas(menuExercicio),
         },
+        ...(listaItens.findIndex((i) => i.id === menuExercicio.id) > 0
+          ? [
+              {
+                rotulo: 'Mover para cima',
+                icone: 'arrow-up-outline' as const,
+                aoTocar: () => moverExercicio(menuExercicio, -1),
+              },
+            ]
+          : []),
+        ...(listaItens.findIndex((i) => i.id === menuExercicio.id) < listaItens.length - 1
+          ? [
+              {
+                rotulo: 'Mover para baixo',
+                icone: 'arrow-down-outline' as const,
+                aoTocar: () => moverExercicio(menuExercicio, 1),
+              },
+            ]
+          : []),
         {
           rotulo: 'Ver histórico e recordes',
           icone: 'stats-chart-outline',
@@ -229,6 +261,10 @@ export default function TelaTreinoAtivo() {
         onPress: async () => {
           setFinalizando(true);
           desfocar();
+          // Assume a navegação antes de finalizar: senão o efeito que
+          // observa "não há treino ativo" dispararia primeiro e mandaria
+          // para a home, engolindo a tela de resumo.
+          jaRedirecionou.current = true;
           await finalizarTreino(treino.id);
           router.replace(`/treino/resumo?id=${treino.id}`);
         },
@@ -244,6 +280,7 @@ export default function TelaTreinoAtivo() {
         text: 'Descartar',
         style: 'destructive',
         onPress: async () => {
+          jaRedirecionou.current = true;
           limparSessao();
           await descartarTreino(treino.id);
           router.replace('/');
@@ -266,7 +303,7 @@ export default function TelaTreinoAtivo() {
           tamanho={26}
           aoTocar={() => router.replace('/')}
         />
-        <Pressable className="flex-1" onPress={() => setRenomeando(true)}>
+        <Pressable className="flex-1" onPress={() => setMenuTreino(true)}>
           <Text className="text-[17px] font-bold text-texto" numberOfLines={1}>
             {treino.nome}
           </Text>
@@ -284,7 +321,9 @@ export default function TelaTreinoAtivo() {
       <BarraDescanso />
 
       <ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+        // Padding extra embaixo: com edge-to-edge a lista vai até a borda da
+        // tela, e o último botão precisa ficar acima da barra de gestos.
+        contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
         keyboardShouldPersistTaps="handled">
         {listaItens.length === 0 ? (
           <EstadoVazio
@@ -351,6 +390,29 @@ export default function TelaTreinoAtivo() {
         titulo={menuExercicio?.nome}
         opcoes={opcoesExercicio}
         aoFechar={() => setMenuExercicio(null)}
+      />
+
+      <MenuOpcoes
+        visivel={menuTreino}
+        titulo={treino.nome}
+        opcoes={[
+          { rotulo: 'Renomear treino', icone: 'text-outline', aoTocar: () => setRenomeando(true) },
+          {
+            rotulo: 'Notas do treino',
+            icone: 'document-text-outline',
+            aoTocar: () => setEditandoNotas(true),
+          },
+        ]}
+        aoFechar={() => setMenuTreino(false)}
+      />
+
+      <ModalTexto
+        visivel={editandoNotas}
+        titulo="Notas do treino"
+        valorInicial={treino.notas ?? ''}
+        placeholder="Como foi o treino, energia, dores, o que ajustar"
+        aoSalvar={(t) => void atualizarNotasDoTreino(treino.id, t)}
+        aoFechar={() => setEditandoNotas(false)}
       />
 
       <ModalTexto

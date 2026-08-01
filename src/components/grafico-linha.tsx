@@ -12,11 +12,9 @@ export type PontoGrafico = { valor: number; rotulo: string };
  */
 export function GraficoLinha({
   pontos,
-  sufixo = '',
   altura = 180,
 }: {
   pontos: PontoGrafico[];
-  sufixo?: string;
   altura?: number;
 }) {
   const { width } = useWindowDimensions();
@@ -63,7 +61,6 @@ export function GraficoLinha({
       xAxisLabelTextStyle={{ color: cores.texto3, fontSize: 10 }}
       noOfSections={4}
       maxValue={Math.ceil((maximo * 1.15) / 5) * 5 || 10}
-      yAxisLabelSuffix={sufixo}
       backgroundColor="transparent"
       curved
     />

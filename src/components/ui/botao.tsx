@@ -1,31 +1,28 @@
 import { Ionicons } from '@expo/vector-icons';
-import { type ComponentProps, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { type ComponentProps } from 'react';
+import { ActivityIndicator, Pressable, Text } from 'react-native';
 
 import { ALVO_TOQUE, cores } from '@/constants/tema';
 
-type Variante = 'primario' | 'secundario' | 'fantasma' | 'perigo';
+type Variante = 'primario' | 'secundario' | 'fantasma';
 type Tamanho = 'normal' | 'grande';
 
 const FUNDO: Record<Variante, string> = {
   primario: 'bg-destaque active:bg-destaqueEscuro',
   secundario: 'bg-superficie2 active:bg-superficie3 border border-borda',
   fantasma: 'bg-transparent active:bg-superficie2',
-  perigo: 'bg-destaqueFundo active:bg-destaqueEscuro border border-destaque/40',
 };
 
 const TEXTO: Record<Variante, string> = {
   primario: 'text-white',
   secundario: 'text-texto',
   fantasma: 'text-texto2',
-  perigo: 'text-destaque',
 };
 
 const COR_ICONE: Record<Variante, string> = {
   primario: '#FFFFFF',
   secundario: cores.texto,
   fantasma: cores.texto2,
-  perigo: cores.destaque,
 };
 
 export function Botao({
@@ -99,8 +96,4 @@ export function BotaoIcone({
       <Ionicons name={icone} size={tamanho} color={cor} />
     </Pressable>
   );
-}
-
-export function LinhaBotoes({ children }: { children: ReactNode }) {
-  return <View className="flex-row gap-3">{children}</View>;
 }

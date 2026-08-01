@@ -13,7 +13,7 @@ export default function TelaHistorico() {
   const { data: treinos } = useLiveQuery(queryHistoricoTreinos(200));
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha
         titulo="Histórico"
         subtitulo={fmt.plural(treinos?.length ?? 0, 'treino', 'treinos')}

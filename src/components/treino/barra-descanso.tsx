@@ -27,8 +27,10 @@ export function BarraDescanso() {
     }
 
     const atualizar = () => {
-      const segundos = Math.max(0, Math.round((descanso.fimEm - Date.now()) / 1000));
-      setRestante(segundos);
+      const segundos = Math.max(0, Math.ceil((descanso.fimEm - Date.now()) / 1000));
+      // Roda a 250ms para não "pular" segundos, mas só re-renderiza quando o
+      // número exibido muda de fato.
+      setRestante((anterior) => (anterior === segundos ? anterior : segundos));
       if (segundos === 0 && !jaAlertou.current) {
         jaAlertou.current = true;
         void encerrar(true);

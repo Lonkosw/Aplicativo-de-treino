@@ -59,7 +59,7 @@ export default function TelaSelecionarExercicios() {
   }
 
   return (
-    <Tela>
+    <Tela edges={['top', 'bottom']}>
       <CabecalhoPilha
         titulo="Adicionar exercícios"
         subtitulo={selecionados.length ? `${selecionados.length} selecionado(s)` : 'Toque para selecionar'}
