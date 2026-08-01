@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "Treino",
+    "slug": "treino",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "treino",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0A0A0B",
+    "android": {
+      "package": "com.lonkosw.treino",
+      "predictiveBackGestureEnabled": false,
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "output": "static"
+    },
+    "plugins": ["expo-router", "expo-sqlite", "expo-sharing", "expo-notifications"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
