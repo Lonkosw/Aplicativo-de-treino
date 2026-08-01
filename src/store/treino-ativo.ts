@@ -49,6 +49,7 @@ type Estado = {
   desfocar: () => void;
   digitar: (tecla: string) => Promise<void>;
   apagar: () => Promise<void>;
+  incrementar: (sinal: 1 | -1) => Promise<void>;
   proximoCampo: () => void;
   definirSequencia: (sequencia: PosicaoFoco[]) => void;
 
@@ -167,6 +168,17 @@ export const usarTreinoAtivo = create<Estado>((set, get) => ({
     const novo = substituir ? '' : buffer.slice(0, -1);
     set({ buffer: novo, substituir: false });
     await atualizarSerie(foco.serieId, { [foco.campo]: interpretarBuffer(novo, foco.campo) });
+  },
+
+  /** Passo de 2,5 kg (menor anilha comum) para peso, 1 para repetições. */
+  async incrementar(sinal) {
+    const { foco, buffer } = get();
+    if (!foco) return;
+    const passo = foco.campo === 'peso' ? 2.5 : 1;
+    const atual = interpretarBuffer(buffer, foco.campo);
+    const novo = Math.max(0, Math.round((atual + sinal * passo) * 10) / 10);
+    set({ buffer: formatarBuffer(novo), substituir: false });
+    await atualizarSerie(foco.serieId, { [foco.campo]: novo });
   },
 
   proximoCampo() {

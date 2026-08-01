@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ESNext"],
+    "jsx": "preserve",
+    "baseUrl": ".",
+    // O tsx resolve módulos usando estes `paths`. É assim que os módulos
+    // nativos do Expo são trocados por stubs de Node na verificação.
+    "paths": {
+      "@/*": ["../../src/*"],
+      "@/assets/*": ["../../assets/*"],
+      "expo-sqlite": ["./shim-expo-sqlite.mjs"],
+      "expo-file-system": ["./shim-expo-vazio.mjs"],
+      "expo-sharing": ["./shim-expo-vazio.mjs"],
+      "expo-document-picker": ["./shim-expo-vazio.mjs"]
+    }
+  },
+  "include": ["./**/*.ts", "../../src/**/*.ts"],
+  "exclude": []
+}

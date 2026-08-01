@@ -20,8 +20,6 @@ module.exports = {
         destaque: '#E11D2B',
         destaqueEscuro: '#B3151F',
         destaqueFundo: '#2A0D11',
-
-        sucesso: '#22C55E',
       },
       fontSize: {
         // Numeros grandes: peso e repeticoes sao o conteudo principal.

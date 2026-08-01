@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
     "db:generate": "drizzle-kit generate",
     "seed:gerar": "tsx scripts/gerar-seed.ts",
-    "build:apk": "eas build --platform android --profile preview"
+    "build:apk": "eas build --platform android --profile preview",
+    "verificar": "node --disable-warning=ExperimentalWarning --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/verificacao/registrar.mjs scripts/verificacao/consultas.test.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",

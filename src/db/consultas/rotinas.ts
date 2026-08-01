@@ -11,9 +11,14 @@ export function queryRotinas() {
       notas: rotinas.notas,
       ordem: rotinas.ordem,
       criadoEm: rotinas.criadoEm,
+      /**
+       * SQL literal, sem `${tabela.coluna}`: num select de tabela única o
+       * Drizzle emite as colunas sem o prefixo da tabela, o que quebraria
+       * uma subconsulta correlacionada (`rotina_id = id` fica ambíguo).
+       */
       totalExercicios: sql<number>`(
-        select count(*) from ${rotinaExercicios}
-        where ${rotinaExercicios.rotinaId} = ${rotinas.id}
+        select count(*) from rotina_exercicios re
+        where re.rotina_id = rotinas.id
       )`,
     })
     .from(rotinas)
@@ -139,11 +144,17 @@ export async function atualizarItemDaRotina(
   await db.update(rotinaExercicios).set(patch).where(eq(rotinaExercicios.id, itemId));
 }
 
-/** Grava a nova ordem depois de arrastar. Recebe os ids já na ordem final. */
-export async function reordenarItensDaRotina(idsNaOrdem: number[]) {
-  await db.transaction(async (tx) => {
+/**
+ * Grava a nova ordem depois de arrastar. Recebe os ids já na ordem final.
+ *
+ * Callback síncrona com `.run()`: o driver expo-sqlite emite o `commit`
+ * assim que a callback retorna. Uma callback `async` devolveria uma Promise
+ * pendente e o commit sairia antes das escritas — sem atomicidade nenhuma.
+ */
+export function reordenarItensDaRotina(idsNaOrdem: number[]) {
+  db.transaction((tx) => {
     for (let i = 0; i < idsNaOrdem.length; i++) {
-      await tx.update(rotinaExercicios).set({ ordem: i }).where(eq(rotinaExercicios.id, idsNaOrdem[i]));
+      tx.update(rotinaExercicios).set({ ordem: i }).where(eq(rotinaExercicios.id, idsNaOrdem[i])).run();
     }
   });
 }

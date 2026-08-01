@@ -12,7 +12,7 @@ export function Tela({
   edges = ['top'],
   className = '',
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   edges?: Edge[];
   className?: string;
 }) {

@@ -28,8 +28,13 @@ export async function popularExerciciosSeVazio() {
 
   // SQLite tem limite de ~999 parametros por statement. Inserimos em lotes
   // dentro de uma unica transacao: ~870 exercicios entram em menos de 100ms.
+  //
+  // A callback e SINCRONA de proposito. O driver expo-sqlite do Drizzle roda
+  // `begin`, chama a callback e ja emite `commit` — com uma callback `async`
+  // o commit aconteceria antes do primeiro `await`, e as escritas cairiam
+  // fora da transacao. Por isso usamos `.run()` em vez de `await`.
   const TAMANHO_LOTE = 100;
-  await db.transaction(async (tx) => {
+  db.transaction((tx) => {
     for (let i = 0; i < linhas.length; i += TAMANHO_LOTE) {
       const lote = linhas.slice(i, i + TAMANHO_LOTE).map((e) => ({
         nome: e.nome,
@@ -40,7 +45,7 @@ export async function popularExerciciosSeVazio() {
         ehCustomizado: false,
         descansoSegundos: 90,
       }));
-      await tx.insert(exercicios).values(lote);
+      tx.insert(exercicios).values(lote).run();
     }
   });
 

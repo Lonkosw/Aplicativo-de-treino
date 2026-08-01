@@ -1,4 +1,4 @@
-import { and, asc, desc, gte, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, isNotNull, ne, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { exercicios, series, treinoExercicios, treinos } from '@/db/schema';
@@ -34,8 +34,8 @@ async function resumoDesde(desde: Date): Promise<ResumoPeriodo> {
       series: sql<number>`coalesce(sum(case when ${series.concluida} = 1 then 1 else 0 end), 0)`,
     })
     .from(series)
-    .innerJoin(treinoExercicios, sql`${series.treinoExercicioId} = ${treinoExercicios.id}`)
-    .innerJoin(treinos, sql`${treinoExercicios.treinoId} = ${treinos.id}`)
+    .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
+    .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
     .where(and(isNotNull(treinos.finalizadoEm), gte(treinos.iniciadoEm, desde)));
 
   return {
@@ -63,8 +63,8 @@ export async function totaisGerais() {
   const [agregado] = await db
     .select({ volume: VOLUME_VALIDO })
     .from(series)
-    .innerJoin(treinoExercicios, sql`${series.treinoExercicioId} = ${treinoExercicios.id}`)
-    .innerJoin(treinos, sql`${treinoExercicios.treinoId} = ${treinos.id}`)
+    .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
+    .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
     .where(isNotNull(treinos.finalizadoEm));
 
   const datas = await db
@@ -98,8 +98,8 @@ export async function volumePorSemana(semanas = 8): Promise<PontoSemana[]> {
       concluida: series.concluida,
     })
     .from(treinos)
-    .innerJoin(treinoExercicios, sql`${treinoExercicios.treinoId} = ${treinos.id}`)
-    .innerJoin(series, sql`${series.treinoExercicioId} = ${treinoExercicios.id}`)
+    .innerJoin(treinoExercicios, eq(treinoExercicios.treinoId, treinos.id))
+    .innerJoin(series, eq(series.treinoExercicioId, treinoExercicios.id))
     .where(and(isNotNull(treinos.finalizadoEm), gte(treinos.iniciadoEm, primeiraSemana)));
 
   const baldes = new Map<number, { volume: number; treinos: Set<number> }>();
@@ -136,9 +136,9 @@ export async function volumePorGrupoMuscular(dias = 30): Promise<FatiaGrupo[]> {
       volume: VOLUME_VALIDO,
     })
     .from(series)
-    .innerJoin(treinoExercicios, sql`${series.treinoExercicioId} = ${treinoExercicios.id}`)
-    .innerJoin(treinos, sql`${treinoExercicios.treinoId} = ${treinos.id}`)
-    .innerJoin(exercicios, sql`${treinoExercicios.exercicioId} = ${exercicios.id}`)
+    .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
+    .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
+    .innerJoin(exercicios, eq(treinoExercicios.exercicioId, exercicios.id))
     .where(and(isNotNull(treinos.finalizadoEm), gte(treinos.iniciadoEm, desde)))
     .groupBy(exercicios.grupoMuscularPrimario)
     .orderBy(desc(VOLUME_VALIDO));
@@ -159,13 +159,13 @@ export async function progressaoDoExercicio(exercicioId: number, limite = 30): P
       tipo: series.tipo,
     })
     .from(series)
-    .innerJoin(treinoExercicios, sql`${series.treinoExercicioId} = ${treinoExercicios.id}`)
-    .innerJoin(treinos, sql`${treinoExercicios.treinoId} = ${treinos.id}`)
+    .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
+    .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
     .where(
       and(
-        sql`${treinoExercicios.exercicioId} = ${exercicioId}`,
-        sql`${series.concluida} = 1`,
-        sql`${series.tipo} <> 'aquecimento'`,
+        eq(treinoExercicios.exercicioId, exercicioId),
+        eq(series.concluida, true),
+        ne(series.tipo, 'aquecimento'),
         isNotNull(treinos.finalizadoEm),
       ),
     )

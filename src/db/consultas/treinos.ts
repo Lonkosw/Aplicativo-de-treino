@@ -9,6 +9,7 @@ import {
   treinoExercicios,
   treinos,
   type TipoSerie,
+  type Treino,
 } from '@/db/schema';
 
 import { seriesDoTreinoAnterior } from './exercicios';
@@ -199,10 +200,11 @@ export async function atualizarNotasDoExercicio(treinoExercicioId: number, notas
     .where(eq(treinoExercicios.id, treinoExercicioId));
 }
 
-export async function reordenarExerciciosDoTreino(idsNaOrdem: number[]) {
-  await db.transaction(async (tx) => {
+/** Callback síncrona: ver a nota em `reordenarItensDaRotina`. */
+export function reordenarExerciciosDoTreino(idsNaOrdem: number[]) {
+  db.transaction((tx) => {
     for (let i = 0; i < idsNaOrdem.length; i++) {
-      await tx.update(treinoExercicios).set({ ordem: i }).where(eq(treinoExercicios.id, idsNaOrdem[i]));
+      tx.update(treinoExercicios).set({ ordem: i }).where(eq(treinoExercicios.id, idsNaOrdem[i])).run();
     }
   });
 }
@@ -240,6 +242,16 @@ export async function adicionarSerie(treinoExercicioId: number) {
   return criada;
 }
 
+/**
+ * Lê a série direto do banco. Usado no instante em que a série é concluída:
+ * o teclado grava a cada dígito, e o valor que chegou por props pode estar
+ * um render atrás do que já está no SQLite.
+ */
+export async function obterSerie(serieId: number) {
+  const [linha] = await db.select().from(series).where(eq(series.id, serieId)).limit(1);
+  return linha ?? null;
+}
+
 export async function atualizarSerie(
   serieId: number,
   dados: Partial<{ peso: number; repeticoes: number; rpe: number | null; tipo: TipoSerie; concluida: boolean }>,
@@ -251,16 +263,17 @@ export async function removerSerie(serieId: number) {
   const [alvo] = await db.select().from(series).where(eq(series.id, serieId)).limit(1);
   if (!alvo) return;
 
-  await db.transaction(async (tx) => {
-    await tx.delete(series).where(eq(series.id, serieId));
+  db.transaction((tx) => {
+    tx.delete(series).where(eq(series.id, serieId)).run();
     // Renumera as séries seguintes para não deixar buracos (1, 2, 4...).
-    const restantes = await tx
+    const restantes = tx
       .select({ id: series.id })
       .from(series)
       .where(eq(series.treinoExercicioId, alvo.treinoExercicioId))
-      .orderBy(asc(series.numeroSerie));
+      .orderBy(asc(series.numeroSerie))
+      .all();
     for (let i = 0; i < restantes.length; i++) {
-      await tx.update(series).set({ numeroSerie: i + 1 }).where(eq(series.id, restantes[i].id));
+      tx.update(series).set({ numeroSerie: i + 1 }).where(eq(series.id, restantes[i].id)).run();
     }
   });
 }
@@ -276,36 +289,40 @@ export async function finalizarTreino(treinoId: number) {
   const fim = new Date();
   const duracao = Math.max(0, Math.round((fim.getTime() - treino.iniciadoEm.getTime()) / 1000));
 
-  await db.transaction(async (tx) => {
+  // Callback síncrona: ver a nota em `reordenarItensDaRotina`.
+  db.transaction((tx) => {
     // Séries não concluídas não viram histórico — são apagadas ao finalizar.
-    const naoConcluidas = await tx
+    const naoConcluidas = tx
       .select({ id: series.id })
       .from(series)
       .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
-      .where(and(eq(treinoExercicios.treinoId, treinoId), eq(series.concluida, false)));
+      .where(and(eq(treinoExercicios.treinoId, treinoId), eq(series.concluida, false)))
+      .all();
 
     for (const s of naoConcluidas) {
-      await tx.delete(series).where(eq(series.id, s.id));
+      tx.delete(series).where(eq(series.id, s.id)).run();
     }
 
     // Exercícios que ficaram sem nenhuma série também saem.
-    const vazios = await tx
+    const vazios = tx
       .select({ id: treinoExercicios.id })
       .from(treinoExercicios)
       .where(
         and(
           eq(treinoExercicios.treinoId, treinoId),
-          sql`not exists (select 1 from ${series} where ${series.treinoExercicioId} = ${treinoExercicios.id})`,
+          // Idem: SQL literal para a correlação não perder o prefixo.
+          sql`not exists (select 1 from series s where s.treino_exercicio_id = treino_exercicios.id)`,
         ),
-      );
+      )
+      .all();
     for (const te of vazios) {
-      await tx.delete(treinoExercicios).where(eq(treinoExercicios.id, te.id));
+      tx.delete(treinoExercicios).where(eq(treinoExercicios.id, te.id)).run();
     }
 
-    await tx
-      .update(treinos)
+    tx.update(treinos)
       .set({ finalizadoEm: fim, duracaoSegundos: duracao })
-      .where(eq(treinos.id, treinoId));
+      .where(eq(treinos.id, treinoId))
+      .run();
   });
 
   return { ...treino, finalizadoEm: fim, duracaoSegundos: duracao };
@@ -334,16 +351,21 @@ export function queryHistoricoTreinos(limite = 50) {
       nome: treinos.nome,
       iniciadoEm: treinos.iniciadoEm,
       duracaoSegundos: treinos.duracaoSegundos,
+      /**
+       * SQL literal, sem `${tabela.coluna}`: num select de tabela única o
+       * Drizzle emite as colunas sem o prefixo da tabela, e a subconsulta
+       * correlacionada viraria `treino_id = id` — ambíguo.
+       */
       totalSeries: sql<number>`(
-        select count(*) from ${series}
-        inner join ${treinoExercicios} on ${series.treinoExercicioId} = ${treinoExercicios.id}
-        where ${treinoExercicios.treinoId} = ${treinos.id} and ${series.concluida} = 1
+        select count(*) from series s
+        inner join treino_exercicios te on s.treino_exercicio_id = te.id
+        where te.treino_id = treinos.id and s.concluida = 1
       )`,
       volume: sql<number>`coalesce((
-        select sum(${series.peso} * ${series.repeticoes}) from ${series}
-        inner join ${treinoExercicios} on ${series.treinoExercicioId} = ${treinoExercicios.id}
-        where ${treinoExercicios.treinoId} = ${treinos.id}
-          and ${series.concluida} = 1 and ${series.tipo} <> 'aquecimento'
+        select sum(s.peso * s.repeticoes) from series s
+        inner join treino_exercicios te on s.treino_exercicio_id = te.id
+        where te.treino_id = treinos.id
+          and s.concluida = 1 and s.tipo <> 'aquecimento'
       ), 0)`,
     })
     .from(treinos)
@@ -359,4 +381,63 @@ export async function obterTreino(treinoId: number) {
 
 export async function excluirTreino(treinoId: number) {
   await db.delete(treinos).where(eq(treinos.id, treinoId));
+}
+
+export type SerieDoDetalhe = {
+  id: number;
+  numeroSerie: number;
+  peso: number;
+  repeticoes: number;
+  rpe: number | null;
+  tipo: TipoSerie;
+};
+
+export type DetalheTreino = {
+  treino: Treino;
+  exercicios: { id: number; exercicioId: number; nome: string; notas: string | null; series: SerieDoDetalhe[] }[];
+  volume: number;
+  totalSeries: number;
+};
+
+/** Treino completo com exercícios e séries — usado no resumo e no histórico. */
+export async function detalheDoTreino(treinoId: number): Promise<DetalheTreino | null> {
+  const treino = await obterTreino(treinoId);
+  if (!treino) return null;
+
+  const [itens, linhas] = await Promise.all([queryItensDoTreino(treinoId), querySeriesDoTreino(treinoId)]);
+
+  const porItem = new Map<number, SerieDoDetalhe[]>();
+  let volume = 0;
+  let totalSeries = 0;
+
+  for (const s of linhas) {
+    if (!s.concluida) continue;
+    totalSeries += 1;
+    if (s.tipo !== 'aquecimento') volume += s.peso * s.repeticoes;
+    const lista = porItem.get(s.treinoExercicioId) ?? [];
+    lista.push({
+      id: s.id,
+      numeroSerie: s.numeroSerie,
+      peso: s.peso,
+      repeticoes: s.repeticoes,
+      rpe: s.rpe,
+      tipo: s.tipo,
+    });
+    porItem.set(s.treinoExercicioId, lista);
+  }
+
+  return {
+    treino,
+    volume,
+    totalSeries,
+    exercicios: itens
+      .map((i) => ({
+        id: i.id,
+        exercicioId: i.exercicioId,
+        nome: i.nome,
+        notas: i.notas,
+        series: porItem.get(i.id) ?? [],
+      }))
+      .filter((i) => i.series.length > 0),
+  };
 }

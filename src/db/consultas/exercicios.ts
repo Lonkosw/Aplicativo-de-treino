@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, like, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, isNotNull, like, ne, sql } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { exercicios, series, treinoExercicios, treinos } from '@/db/schema';
@@ -123,7 +123,7 @@ export async function historicoDoExercicio(exercicioId: number, limite = 40): Pr
       and(
         eq(treinoExercicios.exercicioId, exercicioId),
         eq(series.concluida, true),
-        sql`${treinos.finalizadoEm} is not null`,
+        isNotNull(treinos.finalizadoEm),
       ),
     )
     .orderBy(desc(treinos.iniciadoEm), asc(series.numeroSerie));
@@ -168,7 +168,7 @@ export async function recordesDoExercicio(
 ): Promise<Recordes> {
   const condicoes = [eq(treinoExercicios.exercicioId, exercicioId), eq(series.concluida, true)];
   if (ignorarTreinoId != null) {
-    condicoes.push(sql`${treinoExercicios.treinoId} <> ${ignorarTreinoId}`);
+    condicoes.push(ne(treinoExercicios.treinoId, ignorarTreinoId));
   }
 
   const linhas = await db
@@ -191,14 +191,14 @@ export async function recordesDoExercicio(
  */
 export async function seriesDoTreinoAnterior(exercicioId: number, treinoAtualId?: number) {
   const condicoes = [eq(treinoExercicios.exercicioId, exercicioId), eq(series.concluida, true)];
-  if (treinoAtualId != null) condicoes.push(sql`${treinos.id} <> ${treinoAtualId}`);
+  if (treinoAtualId != null) condicoes.push(ne(treinos.id, treinoAtualId));
 
   const [ultimo] = await db
     .select({ treinoId: treinos.id, data: treinos.iniciadoEm })
     .from(series)
     .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
     .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
-    .where(and(...condicoes, sql`${treinos.finalizadoEm} is not null`))
+    .where(and(...condicoes, isNotNull(treinos.finalizadoEm)))
     .orderBy(desc(treinos.iniciadoEm))
     .limit(1);
 

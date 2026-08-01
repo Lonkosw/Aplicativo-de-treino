@@ -17,8 +17,6 @@ export const cores = {
   destaque: '#E11D2B',
   destaqueEscuro: '#B3151F',
   destaqueFundo: '#2A0D11',
-
-  sucesso: '#22C55E',
 } as const;
 
 /** Altura mínima de alvo de toque. O app é usado de pé, com uma mão só. */
