@@ -164,6 +164,15 @@ export async function iniciarTreinoDeRotina(rotinaId: number) {
 // Exercícios dentro do treino
 // ---------------------------------------------------------------------------
 
+/** Ids dos exercícios já presentes num treino — para marcar na seleção. */
+export async function exerciciosJaNoTreino(treinoId: number) {
+  const linhas = await db
+    .select({ exercicioId: treinoExercicios.exercicioId })
+    .from(treinoExercicios)
+    .where(eq(treinoExercicios.treinoId, treinoId));
+  return linhas.map((l) => l.exercicioId);
+}
+
 export async function adicionarExercicioNoTreino(treinoId: number, exercicioId: number) {
   const [{ maiorOrdem }] = await db
     .select({ maiorOrdem: sql<number>`coalesce(max(${treinoExercicios.ordem}), -1)` })

@@ -64,7 +64,7 @@ export default function TelaDetalheTreino() {
         acao={
           <BotaoIcone
             icone="trash"
-            cor={cores.destaque}
+            cor={cores.destaqueTexto}
             acessibilidade="Excluir treino"
             aoTocar={confirmarExclusao}
           />
@@ -89,7 +89,7 @@ export default function TelaDetalheTreino() {
         {detalhe.exercicios.map((ex) => (
           <Cartao key={ex.id} className="p-4">
             <Text
-              className="text-[15px] font-bold text-destaque"
+              className="text-[15px] font-bold text-destaqueTexto"
               numberOfLines={1}
               onPress={() => router.push(`/exercicio/${ex.exercicioId}`)}>
               {ex.nome}

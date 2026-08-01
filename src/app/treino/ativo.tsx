@@ -3,7 +3,7 @@ import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 
 import { BarraDescanso } from '@/components/treino/barra-descanso';
 import { CartaoExercicioTreino } from '@/components/treino/cartao-exercicio';
@@ -15,7 +15,7 @@ import { Botao, BotaoIcone } from '@/components/ui/botao';
 import { MenuOpcoes, type Opcao } from '@/components/ui/menu-opcoes';
 import { ModalTexto } from '@/components/ui/modal-texto';
 import { Tela } from '@/components/ui/tela';
-import { cores } from '@/constants/tema';
+import { ALVO_TOQUE, cores } from '@/constants/tema';
 import { recordesDoExercicio, seriesDoTreinoAnterior } from '@/db/consultas/exercicios';
 import {
   adicionarSerie,
@@ -70,6 +70,27 @@ export default function TelaTreinoAtivo() {
   const [menuExercicio, setMenuExercicio] = useState<ItemTreino | null>(null);
   const [menuTreino, setMenuTreino] = useState(false);
   const [editandoNotas, setEditandoNotas] = useState(false);
+
+  const refRolagem = useRef<ScrollView>(null);
+  const deslocamento = useRef(0);
+  const alturaTeclado = useRef(0);
+  const { height: alturaJanela } = useWindowDimensions();
+
+  /**
+   * Rola o suficiente para a linha focada ficar acima do teclado. Sem isso,
+   * tocar no peso de uma série da metade de baixo abre o teclado bem em
+   * cima do campo que você quer editar.
+   */
+  const garantirVisivel = useCallback(
+    (yNaJanela: number, altura: number) => {
+      const limite = alturaJanela - alturaTeclado.current - 8;
+      const excesso = yNaJanela + altura - limite;
+      if (excesso > 0) {
+        refRolagem.current?.scrollTo({ y: deslocamento.current + excesso + 12, animated: true });
+      }
+    },
+    [alturaJanela],
+  );
 
   const definirSequencia = usarTreinoAtivo((s) => s.definirSequencia);
   const definirBase = usarTreinoAtivo((s) => s.definirBase);
@@ -254,22 +275,35 @@ export default function TelaTreinoAtivo() {
       );
       return;
     }
-    Alert.alert('Finalizar treino', `${fmt.plural(concluidas, 'série concluída', 'séries concluídas')}.`, [
-      { text: 'Continuar treinando', style: 'cancel' },
-      {
-        text: 'Finalizar',
-        onPress: async () => {
-          setFinalizando(true);
-          desfocar();
-          // Assume a navegação antes de finalizar: senão o efeito que
-          // observa "não há treino ativo" dispararia primeiro e mandaria
-          // para a home, engolindo a tela de resumo.
-          jaRedirecionou.current = true;
-          await finalizarTreino(treino.id);
-          router.replace(`/treino/resumo?id=${treino.id}`);
+    const horas = (Date.now() - treino.iniciadoEm.getTime()) / 3_600_000;
+    // Esquecer de finalizar é o erro mais comum: o cronômetro conta desde
+    // que o treino começou, então no dia seguinte ele marcaria 20 horas e
+    // isso entraria no histórico como tempo de treino.
+    const aviso =
+      horas > 4
+        ? `\n\nAtenção: este treino está aberto há ${fmt.duracaoCurta(horas * 3600)}. Se você esqueceu de finalizar, a duração vai entrar torta no histórico — dá para corrigir depois no detalhe do treino.`
+        : '';
+
+    Alert.alert(
+      'Finalizar treino',
+      `${fmt.plural(concluidas, 'série concluída', 'séries concluídas')}.${aviso}`,
+      [
+        { text: 'Continuar treinando', style: 'cancel' },
+        {
+          text: 'Finalizar',
+          onPress: async () => {
+            setFinalizando(true);
+            desfocar();
+            // Assume a navegação antes de finalizar: senão o efeito que
+            // observa "não há treino ativo" dispararia primeiro e mandaria
+            // para a home, engolindo a tela de resumo.
+            jaRedirecionou.current = true;
+            await finalizarTreino(treino.id);
+            router.replace(`/treino/resumo?id=${treino.id}`);
+          },
         },
-      },
-    ]);
+      ],
+    );
   }
 
   function confirmarDescartar() {
@@ -299,20 +333,34 @@ export default function TelaTreinoAtivo() {
       <View className="flex-row items-center gap-2 border-b border-borda px-2 pb-2 pt-1">
         <BotaoIcone
           icone="chevron-down"
-          acessibilidade="Minimizar treino"
+          acessibilidade="Minimizar treino, continua em andamento"
           tamanho={26}
-          aoTocar={() => router.replace('/')}
+          // `back()` e não `replace('/')`: minimizar tem que devolver para
+          // a tela de onde o treino foi iniciado (Rotinas, por exemplo), e
+          // `replace` destruiria a pilha.
+          aoTocar={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         />
-        <Pressable className="flex-1" onPress={() => setMenuTreino(true)}>
-          <Text className="text-[17px] font-bold text-texto" numberOfLines={1}>
-            {treino.nome}
-          </Text>
-          <CronometroTreino iniciadoEm={treino.iniciadoEm} />
+        <Pressable
+          onPress={() => setMenuTreino(true)}
+          accessibilityRole="button"
+          accessibilityLabel={`${treino.nome}. Toque para renomear ou anotar.`}
+          style={{ minHeight: ALVO_TOQUE }}
+          className="flex-1 flex-row items-center gap-1 rounded-lg px-1 active:bg-superficie2">
+          <View className="flex-1">
+            <Text className="text-[17px] font-bold text-texto" numberOfLines={1}>
+              {treino.nome}
+            </Text>
+            <CronometroTreino iniciadoEm={treino.iniciadoEm} />
+          </View>
+          {/* Sem este chevron o título não se lê como tocável. */}
+          <Ionicons name="chevron-down" size={14} color={cores.texto3} />
         </Pressable>
         <Pressable
           onPress={confirmarFinalizar}
           disabled={finalizando}
-          style={{ minHeight: 40 }}
+          accessibilityRole="button"
+          accessibilityLabel="Finalizar treino"
+          style={{ minHeight: ALVO_TOQUE }}
           className="justify-center rounded-xl bg-destaque px-4 active:bg-destaqueEscuro">
           <Text className="text-[15px] font-bold text-white">Finalizar</Text>
         </Pressable>
@@ -321,6 +369,11 @@ export default function TelaTreinoAtivo() {
       <BarraDescanso />
 
       <ScrollView
+        ref={refRolagem}
+        onScroll={(e) => {
+          deslocamento.current = e.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
         // Padding extra embaixo: com edge-to-edge a lista vai até a borda da
         // tela, e o último botão precisa ficar acima da barra de gestos.
         contentContainerStyle={{ padding: 16, paddingBottom: 48 }}
@@ -347,6 +400,7 @@ export default function TelaTreinoAtivo() {
                 void atualizarSerie(serie.id, { peso: ref.peso, repeticoes: ref.repeticoes })
               }
               aoAbrirMenuSerie={(serie) => setMenuSerie({ item, serie })}
+              aoFocarLinha={garantirVisivel}
             />
           ))
         )}
@@ -360,7 +414,9 @@ export default function TelaTreinoAtivo() {
           />
           <Pressable
             onPress={confirmarDescartar}
-            style={{ minHeight: 44 }}
+            accessibilityRole="button"
+            accessibilityLabel="Descartar treino"
+            style={{ minHeight: ALVO_TOQUE }}
             className="flex-row items-center justify-center gap-2 rounded-2xl active:bg-superficie2">
             <Ionicons name="trash-outline" size={16} color={cores.texto3} />
             <Text className="text-[14px] font-semibold text-texto3">Descartar treino</Text>
@@ -369,6 +425,9 @@ export default function TelaTreinoAtivo() {
       </ScrollView>
 
       <TecladoNumerico
+        aoMedirAltura={(h) => {
+          alturaTeclado.current = h;
+        }}
         aoConcluirSerie={(serieId) => {
           const item = listaItens.find((i) =>
             (seriesPorExercicio[i.id] ?? []).some((s) => s.id === serieId),

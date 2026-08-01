@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'drizzle-orm/expo-sqlite';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 
 import { CabecalhoPilha } from '@/components/cabecalho-pilha';
@@ -9,9 +9,10 @@ import { CampoBusca, EstadoVazio, FiltroChips } from '@/components/ui/basicos';
 import { Botao, BotaoIcone } from '@/components/ui/botao';
 import { Tela } from '@/components/ui/tela';
 import { cores } from '@/constants/tema';
-import { adicionarExercicioNaRotina } from '@/db/consultas/rotinas';
+import { useValorAtrasado } from '@/lib/hooks';
+import { adicionarExercicioNaRotina, exerciciosJaNaRotina } from '@/db/consultas/rotinas';
 import { queryEquipamentos, queryExercicios, queryGruposMusculares } from '@/db/consultas/exercicios';
-import { adicionarExercicioNoTreino } from '@/db/consultas/treinos';
+import { adicionarExercicioNoTreino, exerciciosJaNoTreino } from '@/db/consultas/treinos';
 
 /**
  * Tela compartilhada: recebe por parâmetro de rota para onde os exercícios
@@ -30,15 +31,33 @@ export default function TelaSelecionarExercicios() {
   const [selecionados, setSelecionados] = useState<number[]>([]);
   const [salvando, setSalvando] = useState(false);
 
-  const { data: lista } = useLiveQuery(queryExercicios({ busca, grupo, equipamento }), [
-    busca,
-    grupo,
-    equipamento,
-  ]);
+  // O campo responde na hora; a consulta espera o usuário parar de digitar.
+  const buscaAtrasada = useValorAtrasado(busca);
+  const { data: lista } = useLiveQuery(
+    queryExercicios({ busca: buscaAtrasada, grupo, equipamento }),
+    [buscaAtrasada, grupo, equipamento],
+  );
   const { data: grupos } = useLiveQuery(queryGruposMusculares());
   const { data: equipamentos } = useLiveQuery(queryEquipamentos());
 
   const selecionadosSet = useMemo(() => new Set(selecionados), [selecionados]);
+
+  /**
+   * Quem já está na lista de destino aparece marcado como "já adicionado".
+   * Sem isso dá para adicionar o mesmo exercício duas vezes sem perceber —
+   * e aí o treino mostra dois cartões idênticos.
+   */
+  const [jaAdicionados, setJaAdicionados] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    const alvo = Number(alvoId);
+    if (!Number.isFinite(alvo)) return;
+    let ativo = true;
+    const buscar = destino === 'treino' ? exerciciosJaNoTreino : exerciciosJaNaRotina;
+    buscar(alvo).then((ids) => ativo && setJaAdicionados(new Set(ids)));
+    return () => {
+      ativo = false;
+    };
+  }, [alvoId, destino]);
 
   function alternar(id: number) {
     setSelecionados((atual) =>
@@ -66,7 +85,7 @@ export default function TelaSelecionarExercicios() {
         acao={
           <BotaoIcone
             icone="add"
-            cor={cores.destaque}
+            cor={cores.destaqueTexto}
             tamanho={26}
             acessibilidade="Criar exercício"
             aoTocar={() => router.push('/exercicio/novo')}
@@ -94,6 +113,7 @@ export default function TelaSelecionarExercicios() {
           <LinhaExercicioSelecionavel
             exercicio={item}
             selecionado={selecionadosSet.has(item.id)}
+            jaAdicionado={jaAdicionados.has(item.id)}
             aoTocar={() => alternar(item.id)}
           />
         )}

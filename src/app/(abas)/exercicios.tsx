@@ -8,6 +8,7 @@ import { CampoBusca, EstadoVazio, FiltroChips } from '@/components/ui/basicos';
 import { LinhaExercicio } from '@/components/linha-exercicio';
 import { Tela, TituloTela } from '@/components/ui/tela';
 import { cores } from '@/constants/tema';
+import { useValorAtrasado } from '@/lib/hooks';
 import {
   queryEquipamentos,
   queryExercicios,
@@ -22,11 +23,12 @@ export default function TelaExercicios() {
 
   // `useLiveQuery` reexecuta a consulta sozinho quando a tabela muda —
   // criar um exercício customizado já aparece aqui sem refresh manual.
-  const { data: lista } = useLiveQuery(queryExercicios({ busca, grupo, equipamento }), [
-    busca,
-    grupo,
-    equipamento,
-  ]);
+  // O campo responde na hora; a consulta espera o usuário parar de digitar.
+  const buscaAtrasada = useValorAtrasado(busca);
+  const { data: lista } = useLiveQuery(
+    queryExercicios({ busca: buscaAtrasada, grupo, equipamento }),
+    [buscaAtrasada, grupo, equipamento],
+  );
   const { data: grupos } = useLiveQuery(queryGruposMusculares());
   const { data: equipamentos } = useLiveQuery(queryEquipamentos());
 
@@ -39,7 +41,7 @@ export default function TelaExercicios() {
         acao={
           <BotaoIcone
             icone="add"
-            cor={cores.destaque}
+            cor={cores.destaqueTexto}
             tamanho={26}
             acessibilidade="Criar exercício"
             aoTocar={() => router.push('/exercicio/novo')}

@@ -8,7 +8,7 @@ import { GraficoLinha, type PontoGrafico } from '@/components/grafico-linha';
 import { Cartao, EstadoVazio, Etiqueta, Metrica, Separador } from '@/components/ui/basicos';
 import { BotaoIcone } from '@/components/ui/botao';
 import { Tela } from '@/components/ui/tela';
-import { cores } from '@/constants/tema';
+import { ALVO_TOQUE, cores } from '@/constants/tema';
 import {
   atualizarDescanso,
   contarUsoEmTreinos,
@@ -25,10 +25,14 @@ import * as fmt from '@/lib/formato';
 
 type Metrica3 = 'peso' | '1rm' | 'volume';
 
+/**
+ * Rótulos curtos de propósito: "Peso máximo / 1RM estimado / Volume no
+ * treino" somavam ~322dp de chips num cartão de 288dp e estouravam.
+ */
 const ROTULO_METRICA: Record<Metrica3, string> = {
-  peso: 'Peso máximo',
-  '1rm': '1RM estimado',
-  volume: 'Volume no treino',
+  peso: 'Peso máx.',
+  '1rm': '1RM est.',
+  volume: 'Volume',
 };
 
 const OPCOES_DESCANSO = [0, 60, 90, 120, 150, 180, 240];
@@ -130,7 +134,7 @@ export default function TelaExercicio() {
           exercicio.ehCustomizado ? (
             <BotaoIcone
               icone="trash"
-              cor={cores.destaque}
+              cor={cores.destaqueTexto}
               acessibilidade="Excluir exercício"
               aoTocar={confirmarExclusao}
             />
@@ -167,18 +171,18 @@ export default function TelaExercicio() {
               <Pressable
                 key={m}
                 onPress={() => setMetrica(m)}
-                style={{ minHeight: 34 }}
+                style={{ minHeight: ALVO_TOQUE - 8 }}
                 className={`justify-center rounded-lg px-3 ${
                   metrica === m ? 'bg-destaqueFundo' : 'bg-superficie2'
                 }`}>
                 <Text
-                  className={`text-xs font-semibold ${metrica === m ? 'text-destaque' : 'text-texto3'}`}>
+                  className={`text-xs font-semibold ${metrica === m ? 'text-destaqueTexto' : 'text-texto3'}`}>
                   {ROTULO_METRICA[m]}
                 </Text>
               </Pressable>
             ))}
           </View>
-          <GraficoLinha pontos={pontos} />
+          <GraficoLinha pontos={pontos} sufixo={metrica === 'volume' ? '' : ' kg'} />
         </Cartao>
 
         {/* Descanso padrão */}
@@ -194,7 +198,7 @@ export default function TelaExercicio() {
               <Pressable
                 key={s}
                 onPress={() => void trocarDescanso(s)}
-                style={{ minHeight: 40, minWidth: 62 }}
+                style={{ minHeight: ALVO_TOQUE, minWidth: 64 }}
                 className={`items-center justify-center rounded-xl border ${
                   exercicio.descansoSegundos === s
                     ? 'border-destaque bg-destaqueFundo'
@@ -202,7 +206,7 @@ export default function TelaExercicio() {
                 }`}>
                 <Text
                   className={`text-sm font-bold ${
-                    exercicio.descansoSegundos === s ? 'text-destaque' : 'text-texto2'
+                    exercicio.descansoSegundos === s ? 'text-destaqueTexto' : 'text-texto2'
                   }`}>
                   {s === 0 ? 'Off' : fmt.cronometro(s)}
                 </Text>

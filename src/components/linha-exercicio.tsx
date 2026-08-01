@@ -13,21 +13,25 @@ export const LinhaExercicio = memo(function LinhaExercicio({
   exercicio,
   aoTocar,
   direita,
+  etiqueta,
 }: {
   exercicio: Pick<Exercicio, 'id' | 'nome' | 'grupoMuscularPrimario' | 'equipamento' | 'ehCustomizado'>;
   aoTocar: () => void;
   direita?: React.ReactNode;
+  etiqueta?: string;
 }) {
   return (
     <Pressable
       onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={`${exercicio.nome}. ${exercicio.grupoMuscularPrimario}, ${exercicio.equipamento}.${etiqueta ? ` ${etiqueta}.` : ''}`}
       style={{ minHeight: 64 }}
       className="flex-row items-center gap-3 px-5 active:bg-superficie2">
       <View className="h-10 w-10 items-center justify-center rounded-xl bg-superficie2">
         <Ionicons
           name={exercicio.ehCustomizado ? 'create' : 'barbell'}
           size={18}
-          color={exercicio.ehCustomizado ? cores.destaque : cores.texto3}
+          color={exercicio.ehCustomizado ? cores.destaqueTexto : cores.texto3}
         />
       </View>
       <View className="flex-1">
@@ -36,6 +40,7 @@ export const LinhaExercicio = memo(function LinhaExercicio({
         </Text>
         <Text className="text-[13px] text-texto3" numberOfLines={1}>
           {exercicio.grupoMuscularPrimario} · {exercicio.equipamento}
+          {etiqueta ? <Text className="text-destaqueTexto"> · {etiqueta}</Text> : null}
         </Text>
       </View>
       {direita ?? <Ionicons name="chevron-forward" size={16} color={cores.texto3} />}
@@ -47,21 +52,25 @@ export const LinhaExercicio = memo(function LinhaExercicio({
 export const LinhaExercicioSelecionavel = memo(function LinhaExercicioSelecionavel({
   exercicio,
   selecionado,
+  jaAdicionado,
   aoTocar,
 }: {
   exercicio: Pick<Exercicio, 'id' | 'nome' | 'grupoMuscularPrimario' | 'equipamento' | 'ehCustomizado'>;
   selecionado: boolean;
+  /** Já está no treino/rotina de destino. Ainda dá para adicionar de novo. */
+  jaAdicionado?: boolean;
   aoTocar: () => void;
 }) {
   return (
     <LinhaExercicio
       exercicio={exercicio}
       aoTocar={aoTocar}
+      etiqueta={jaAdicionado ? 'já na lista' : undefined}
       direita={
         <View
-          style={{ width: ALVO_TOQUE - 12, height: ALVO_TOQUE - 12 }}
+          style={{ width: 30, height: 30 }}
           className={`items-center justify-center rounded-full border-2 ${
-            selecionado ? 'border-destaque bg-destaque' : 'border-borda'
+            selecionado ? 'border-destaque bg-destaque' : 'border-bordaCampo'
           }`}>
           {selecionado ? <Ionicons name="checkmark" size={20} color="#FFFFFF" /> : null}
         </View>

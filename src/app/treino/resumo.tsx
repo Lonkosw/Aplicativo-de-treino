@@ -65,7 +65,7 @@ export default function TelaResumo() {
     <Tela edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 18 }}>
         <View className="items-center gap-1 pt-6">
-          <Ionicons name="checkmark-circle" size={52} color={cores.destaque} />
+          <Ionicons name="checkmark-circle" size={52} color={cores.destaqueTexto} />
           <Text className="text-[26px] font-extrabold text-texto">Treino concluído</Text>
           <Text className="text-[14px] text-texto3">{detalhe.treino.nome}</Text>
         </View>
@@ -80,19 +80,19 @@ export default function TelaResumo() {
 
         {recordesBatidos.length > 0 ? (
           <View className="gap-2">
-            <Text className="text-xs font-bold uppercase tracking-wider text-destaque">
+            <Text className="text-xs font-bold uppercase tracking-wider text-destaqueTexto">
               Recordes pessoais batidos
             </Text>
             {recordesBatidos.map(({ exercicio, serie, tipos }) => (
               <View
                 key={serie.id}
                 className="flex-row items-center gap-3 rounded-2xl border border-destaque/40 bg-destaqueFundo p-3">
-                <Ionicons name="trophy" size={20} color={cores.destaque} />
+                <Ionicons name="trophy" size={20} color={cores.destaqueTexto} />
                 <View className="flex-1">
                   <Text className="text-[15px] font-bold text-texto" numberOfLines={1}>
                     {exercicio}
                   </Text>
-                  <Text className="text-[12px] font-semibold text-destaque">
+                  <Text className="text-[12px] font-semibold text-destaqueTexto">
                     {tipos.map((t) => ROTULO_RECORDE[t]).join(' · ')}
                   </Text>
                 </View>
@@ -127,7 +127,7 @@ export default function TelaResumo() {
                         {fmt.peso(s.peso)} kg × {s.repeticoes}
                       </Text>
                       {recordes[s.id]?.length ? (
-                        <Ionicons name="trophy" size={13} color={cores.destaque} />
+                        <Ionicons name="trophy" size={13} color={cores.destaqueTexto} />
                       ) : null}
                     </View>
                   ))}

@@ -1,15 +1,54 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeOut,
+  cancelAnimation,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
-import { cores } from '@/constants/tema';
+import { ALVO_TOQUE, DURACAO, cores } from '@/constants/tema';
 import * as fmt from '@/lib/formato';
 import { usarTreinoAtivo } from '@/store/treino-ativo';
 
+function BotaoDescanso({
+  rotulo,
+  icone,
+  aoTocar,
+  acessibilidade,
+}: {
+  rotulo?: string;
+  icone?: 'play-skip-forward';
+  aoTocar: () => void;
+  acessibilidade: string;
+}) {
+  return (
+    <Pressable
+      onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={acessibilidade}
+      style={{ minHeight: ALVO_TOQUE, minWidth: 54 }}
+      className="items-center justify-center rounded-xl bg-superficie2 active:bg-superficie3">
+      {rotulo ? (
+        <Text className="text-sm font-bold text-texto">{rotulo}</Text>
+      ) : (
+        <Ionicons name={icone!} size={18} color={cores.texto} />
+      )}
+    </Pressable>
+  );
+}
+
 /**
- * Barra fixa do timer de descanso. Só ela re-renderiza a cada segundo — o
- * resto da tela de treino fica parado, o que importa numa lista com dezenas
- * de linhas.
+ * Barra fixa do timer de descanso.
+ *
+ * O texto muda uma vez por segundo (estado React), mas a barra de progresso
+ * é animada na UI thread com `withTiming` até o fim do descanso — assim ela
+ * escorre continuamente em vez de pular de segundo em segundo, e não custa
+ * um render a cada frame.
  */
 export function BarraDescanso() {
   const descanso = usarTreinoAtivo((s) => s.descanso);
@@ -20,16 +59,25 @@ export function BarraDescanso() {
   // Evita disparar a vibração duas vezes se o efeito reexecutar.
   const jaAlertou = useRef(false);
 
+  const progresso = useSharedValue(1);
+
   useEffect(() => {
     if (!descanso) {
       jaAlertou.current = false;
+      cancelAnimation(progresso);
       return;
     }
 
+    // Anima do valor atual até zero, no tempo que falta. Reagenda sempre
+    // que o descanso muda (±15s), então continua correto após ajustes.
+    const faltamMs = Math.max(0, descanso.fimEm - Date.now());
+    progresso.value = faltamMs / (descanso.totalSegundos * 1000);
+    progresso.value = withTiming(0, { duration: faltamMs, easing: Easing.linear });
+
     const atualizar = () => {
       const segundos = Math.max(0, Math.ceil((descanso.fimEm - Date.now()) / 1000));
-      // Roda a 250ms para não "pular" segundos, mas só re-renderiza quando o
-      // número exibido muda de fato.
+      // Roda a 250ms para não "pular" segundos, mas só re-renderiza quando
+      // o número exibido muda de fato.
       setRestante((anterior) => (anterior === segundos ? anterior : segundos));
       if (segundos === 0 && !jaAlertou.current) {
         jaAlertou.current = true;
@@ -40,58 +88,57 @@ export function BarraDescanso() {
     atualizar();
     const intervalo = setInterval(atualizar, 250);
     const inscricao = AppState.addEventListener('change', (estado) => {
-      if (estado === 'active') atualizar();
+      if (estado !== 'active') return;
+      atualizar();
+      // Voltando do segundo plano a animação foi congelada: reancora.
+      const restanteMs = Math.max(0, descanso.fimEm - Date.now());
+      cancelAnimation(progresso);
+      progresso.value = restanteMs / (descanso.totalSegundos * 1000);
+      progresso.value = withTiming(0, { duration: restanteMs, easing: Easing.linear });
     });
 
     return () => {
       clearInterval(intervalo);
       inscricao.remove();
     };
-  }, [descanso, encerrar]);
+  }, [descanso, encerrar, progresso]);
+
+  const estiloBarra = useAnimatedStyle(() => ({
+    width: `${Math.min(100, Math.max(0, progresso.value * 100))}%`,
+  }));
 
   if (!descanso) return null;
 
-  const progresso = Math.min(1, Math.max(0, restante / descanso.totalSegundos));
-
   return (
-    <View className="border-b border-borda bg-destaqueFundo">
-      {/* Barra de progresso: largura em % do container, não animada, para
-          não competir com o scroll pela UI thread. */}
-      <View className="h-1 w-full bg-destaqueFundo">
-        <View style={{ width: `${progresso * 100}%` }} className="h-1 bg-destaque" />
+    <Animated.View
+      entering={FadeIn.duration(DURACAO.media)}
+      exiting={FadeOut.duration(DURACAO.rapida)}
+      className="border-b border-borda bg-destaqueFundo">
+      <View className="h-1 w-full">
+        <Animated.View style={estiloBarra} className="h-1 bg-destaque" />
       </View>
 
       <View className="flex-row items-center gap-2 px-4 py-2">
-        <Ionicons name="timer-outline" size={20} color={cores.destaque} />
+        <Ionicons name="timer-outline" size={20} color={cores.destaqueTexto} />
         <View className="flex-1">
-          <Text className="text-[19px] font-extrabold tabular-nums text-destaque">
+          <Text
+            accessibilityLiveRegion="polite"
+            className="text-[19px] font-extrabold tabular-nums text-destaqueTexto">
             {fmt.cronometro(restante)}
           </Text>
-          <Text className="text-[11px] text-texto3" numberOfLines={1}>
+          <Text className="text-[11px] text-texto2" numberOfLines={1}>
             Descanso · {descanso.nomeExercicio}
           </Text>
         </View>
 
-        <Pressable
-          onPress={() => void ajustar(-15)}
-          style={{ minHeight: 40, minWidth: 52 }}
-          className="items-center justify-center rounded-xl bg-superficie2 active:bg-superficie3">
-          <Text className="text-sm font-bold text-texto">−15s</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => void ajustar(15)}
-          style={{ minHeight: 40, minWidth: 52 }}
-          className="items-center justify-center rounded-xl bg-superficie2 active:bg-superficie3">
-          <Text className="text-sm font-bold text-texto">+15s</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => void encerrar(false)}
-          accessibilityLabel="Pular descanso"
-          style={{ minHeight: 40, minWidth: 44 }}
-          className="items-center justify-center rounded-xl bg-superficie2 active:bg-superficie3">
-          <Ionicons name="play-skip-forward" size={18} color={cores.texto} />
-        </Pressable>
+        <BotaoDescanso rotulo="−15s" aoTocar={() => void ajustar(-15)} acessibilidade="Tirar 15 segundos" />
+        <BotaoDescanso rotulo="+15s" aoTocar={() => void ajustar(15)} acessibilidade="Somar 15 segundos" />
+        <BotaoDescanso
+          icone="play-skip-forward"
+          aoTocar={() => void encerrar(false)}
+          acessibilidade="Pular descanso"
+        />
       </View>
-    </View>
+    </Animated.View>
   );
 }

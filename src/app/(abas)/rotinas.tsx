@@ -6,6 +6,7 @@ import { Alert, FlatList, Text, View } from 'react-native';
 import { Cartao, EstadoVazio } from '@/components/ui/basicos';
 import { Botao, BotaoIcone } from '@/components/ui/botao';
 import { MenuOpcoes, type Opcao } from '@/components/ui/menu-opcoes';
+import { ModalTexto } from '@/components/ui/modal-texto';
 import { Tela, TituloTela } from '@/components/ui/tela';
 import { cores } from '@/constants/tema';
 import { criarRotina, duplicarRotina, excluirRotina, queryRotinas } from '@/db/consultas/rotinas';
@@ -16,9 +17,14 @@ export default function TelaRotinas() {
   const router = useRouter();
   const { data: rotinas } = useLiveQuery(queryRotinas());
   const [menu, setMenu] = useState<{ id: number; nome: string } | null>(null);
+  const [criando, setCriando] = useState(false);
 
-  async function novaRotina() {
-    const criada = await criarRotina('Nova rotina');
+  /**
+   * Pede o nome ANTES de criar. Criar direto e abrir o editor deixava uma
+   * "Nova rotina" vazia na lista toda vez que o + era tocado sem querer.
+   */
+  async function criarComNome(nome: string) {
+    const criada = await criarRotina(nome);
     router.push(`/rotina/${criada.id}`);
   }
 
@@ -66,10 +72,10 @@ export default function TelaRotinas() {
         acao={
           <BotaoIcone
             icone="add"
-            cor={cores.destaque}
+            cor={cores.destaqueTexto}
             tamanho={26}
             acessibilidade="Nova rotina"
-            aoTocar={() => void novaRotina()}
+            aoTocar={() => setCriando(true)}
           />
         }>
         Rotinas
@@ -126,7 +132,7 @@ export default function TelaRotinas() {
             descricao="Crie uma rotina para montar seu treino uma vez e repetir com um toque."
             acao={
               <View className="mt-2 w-56">
-                <Botao titulo="Criar rotina" icone="add" aoTocar={() => void novaRotina()} />
+                <Botao titulo="Criar rotina" icone="add" aoTocar={() => setCriando(true)} />
               </View>
             }
           />
@@ -138,6 +144,17 @@ export default function TelaRotinas() {
         titulo={menu?.nome}
         opcoes={opcoesDoMenu}
         aoFechar={() => setMenu(null)}
+      />
+
+      <ModalTexto
+        visivel={criando}
+        titulo="Nova rotina"
+        descricao="Você pode mudar depois."
+        valorInicial=""
+        multilinha={false}
+        placeholder="Ex.: Push A, Pernas, Costas e bíceps"
+        aoSalvar={(nome) => void criarComNome(nome)}
+        aoFechar={() => setCriando(false)}
       />
     </Tela>
   );

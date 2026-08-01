@@ -7,7 +7,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { Cartao, Etiqueta, Metrica } from '@/components/ui/basicos';
 import { Botao } from '@/components/ui/botao';
 import { Secao, Tela, TituloTela } from '@/components/ui/tela';
-import { cores } from '@/constants/tema';
+import { ALVO_TOQUE, cores } from '@/constants/tema';
 import { resumoDaSemana, type ResumoPeriodo } from '@/db/consultas/estatisticas';
 import { queryRotinas } from '@/db/consultas/rotinas';
 import {
@@ -71,14 +71,14 @@ export default function TelaInicio() {
             <Pressable
               onPress={() => router.push('/treino/ativo')}
               className="flex-row items-center gap-3 rounded-2xl border border-destaque bg-destaqueFundo p-4 active:bg-destaqueEscuro">
-              <Ionicons name="fitness" size={26} color={cores.destaque} />
+              <Ionicons name="fitness" size={26} color={cores.destaqueTexto} />
               <View className="flex-1">
                 <Text className="text-[16px] font-bold text-texto">{treinoAtivo.nome}</Text>
-                <Text className="text-[13px] text-destaque">
+                <Text className="text-[13px] text-destaqueTexto">
                   Treino em andamento · começou {fmt.dataRelativa(treinoAtivo.iniciadoEm).toLowerCase()}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={cores.destaque} />
+              <Ionicons name="chevron-forward" size={20} color={cores.destaqueTexto} />
             </Pressable>
           </View>
         ) : (
@@ -110,8 +110,13 @@ export default function TelaInicio() {
         <Secao
           titulo="Começar uma rotina"
           acao={
-            <Pressable onPress={() => router.push('/rotinas')} hitSlop={8}>
-              <Text className="text-[13px] font-bold text-destaque">Ver todas</Text>
+            <Pressable
+              onPress={() => router.push('/rotinas')}
+              accessibilityRole="button"
+              accessibilityLabel="Ver todas as rotinas"
+              style={{ minHeight: ALVO_TOQUE - 8 }}
+              className="justify-center rounded-lg px-2 active:bg-superficie2">
+              <Text className="text-[13px] font-bold text-destaqueTexto">Ver todas</Text>
             </Pressable>
           }>
           {rotinas?.length ? (
@@ -126,7 +131,7 @@ export default function TelaInicio() {
                     r.totalExercicios === 0 ? 'opacity-50' : ''
                   }`}>
                   <View className="h-9 w-9 items-center justify-center rounded-xl bg-superficie2">
-                    <Ionicons name="play" size={16} color={cores.destaque} />
+                    <Ionicons name="play" size={16} color={cores.destaqueTexto} />
                   </View>
                   <View className="flex-1">
                     <Text className="text-[15px] font-bold text-texto" numberOfLines={1}>

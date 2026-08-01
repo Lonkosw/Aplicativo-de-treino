@@ -115,6 +115,15 @@ export async function duplicarRotina(id: number) {
   return copia;
 }
 
+/** Ids dos exercícios já presentes numa rotina — para marcar na seleção. */
+export async function exerciciosJaNaRotina(rotinaId: number) {
+  const linhas = await db
+    .select({ exercicioId: rotinaExercicios.exercicioId })
+    .from(rotinaExercicios)
+    .where(eq(rotinaExercicios.rotinaId, rotinaId));
+  return linhas.map((l) => l.exercicioId);
+}
+
 export async function adicionarExercicioNaRotina(rotinaId: number, exercicioId: number) {
   const [{ maiorOrdem }] = await db
     .select({ maiorOrdem: sql<number>`coalesce(max(${rotinaExercicios.ordem}), -1)` })

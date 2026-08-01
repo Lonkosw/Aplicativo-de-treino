@@ -45,7 +45,7 @@ export function BancoProvider({ children }: { children: ReactNode }) {
   if (falha) {
     return (
       <View className="flex-1 items-center justify-center gap-2 bg-fundo px-8">
-        <Text className="text-center text-base font-semibold text-destaque">
+        <Text className="text-center text-base font-semibold text-destaqueTexto">
           Não foi possível preparar o banco de dados
         </Text>
         <Text className="text-center text-sm text-texto2">{falha.message}</Text>
@@ -56,7 +56,7 @@ export function BancoProvider({ children }: { children: ReactNode }) {
   if (estado !== 'pronto') {
     return (
       <View className="flex-1 items-center justify-center gap-3 bg-fundo">
-        <ActivityIndicator color={cores.destaque} />
+        <ActivityIndicator color={cores.destaqueTexto} />
         <Text className="text-sm text-texto3">
           {estado === 'migrando' ? 'Preparando banco...' : 'Carregando exercícios...'}
         </Text>

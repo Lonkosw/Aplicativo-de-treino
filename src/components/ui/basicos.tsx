@@ -42,11 +42,11 @@ export function Chip({
   return (
     <Pressable
       onPress={aoTocar}
-      style={{ minHeight: 38 }}
+      style={{ minHeight: ALVO_TOQUE }}
       className={`justify-center rounded-full border px-4 ${
         ativo ? 'border-destaque bg-destaqueFundo' : 'border-borda bg-superficie'
       }`}>
-      <Text className={`text-sm font-semibold ${ativo ? 'text-destaque' : 'text-texto2'}`}>{rotulo}</Text>
+      <Text className={`text-sm font-semibold ${ativo ? 'text-destaqueTexto' : 'text-texto2'}`}>{rotulo}</Text>
     </Pressable>
   );
 }
@@ -91,7 +91,7 @@ export function CampoBusca({
   return (
     <View
       style={{ minHeight: ALVO_TOQUE }}
-      className="flex-row items-center gap-2 rounded-2xl border border-borda bg-superficie px-4">
+      className="flex-row items-center gap-2 rounded-2xl border border-bordaCampo bg-superficie2 px-4">
       <Ionicons name="search" size={18} color={cores.texto3} />
       <TextInput
         value={valor}
@@ -119,6 +119,7 @@ export function CampoTexto({
   placeholder,
   multilinha,
   teclado = 'default',
+  autoFoco,
 }: {
   valor: string;
   aoMudar: (v: string) => void;
@@ -126,6 +127,7 @@ export function CampoTexto({
   placeholder?: string;
   multilinha?: boolean;
   teclado?: 'default' | 'numeric';
+  autoFoco?: boolean;
 }) {
   return (
     <View className="gap-1.5">
@@ -139,8 +141,10 @@ export function CampoTexto({
         placeholderTextColor={cores.texto3}
         multiline={multilinha}
         keyboardType={teclado}
+        autoFocus={autoFoco}
         style={{ minHeight: multilinha ? 88 : ALVO_TOQUE, textAlignVertical: multilinha ? 'top' : 'center' }}
-        className="rounded-2xl border border-borda bg-superficie px-4 py-3 text-base text-texto"
+        // `bordaCampo` e nao `borda`: e a borda que diz "isto e editavel".
+        className="rounded-2xl border border-bordaCampo bg-superficie2 px-4 py-3 text-base text-texto"
       />
     </View>
   );
@@ -181,8 +185,22 @@ export function Metrica({
 }) {
   return (
     <View className={`flex-1 items-center gap-0.5 ${className}`}>
-      <Text className={`text-numero ${destaque ? 'text-destaque' : 'text-texto'}`}>{valor}</Text>
-      <Text className="text-[11px] font-semibold uppercase tracking-wide text-texto3">{rotulo}</Text>
+      {/* Numero e rotulo em UMA linha: "12.450 kg" ou "semanas seguidas"
+          estouram a coluna de ~96dp e quebravam o alinhamento da fileira. */}
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.7}
+        className={`text-numero ${destaque ? 'text-destaqueTexto' : 'text-texto'}`}>
+        {valor}
+      </Text>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        className="text-[11px] font-semibold uppercase tracking-wide text-texto3">
+        {rotulo}
+      </Text>
     </View>
   );
 }

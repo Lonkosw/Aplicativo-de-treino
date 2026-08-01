@@ -3,7 +3,7 @@ import { type ComponentProps } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ALVO_TOQUE, cores } from '@/constants/tema';
+import { ALVO_TOQUE, DURACAO, cores } from '@/constants/tema';
 
 export type Opcao = {
   rotulo: string;
@@ -36,6 +36,20 @@ export function MenuOpcoes({
 }) {
   const insets = useSafeAreaInsets();
 
+  /**
+   * Fecha a folha ANTES de executar a ação, e só executa depois que ela
+   * terminou de sair.
+   *
+   * No Android, abrir um `Modal` enquanto outro ainda está sendo desmontado
+   * faz o segundo simplesmente não aparecer. Como várias opções daqui abrem
+   * um diálogo de texto ("Notas do exercício", "Renomear treino"), sem esta
+   * espera o toque parecia não fazer nada.
+   */
+  function escolher(opcao: Opcao) {
+    aoFechar();
+    setTimeout(opcao.aoTocar, DURACAO.lenta);
+  }
+
   return (
     <Modal visible={visivel} transparent animationType="slide" onRequestClose={aoFechar}>
       <Pressable onPress={aoFechar} className="flex-1 justify-end bg-black/70">
@@ -63,26 +77,26 @@ export function MenuOpcoes({
           {opcoes.map((o) => (
             <Pressable
               key={o.rotulo}
-              onPress={() => {
-                aoFechar();
-                o.aoTocar();
-              }}
+              onPress={() => escolher(o)}
+              accessibilityRole="button"
+              accessibilityLabel={o.rotulo}
+              accessibilityState={{ selected: o.marcada }}
               style={{ minHeight: 56 }}
               className="flex-row items-center gap-3 rounded-2xl px-3 active:bg-superficie2">
               {o.icone ? (
                 <Ionicons
                   name={o.icone}
                   size={20}
-                  color={o.destrutiva ? cores.destaque : cores.texto2}
+                  color={o.destrutiva ? cores.destaqueTexto : cores.texto2}
                 />
               ) : null}
               <Text
                 className={`flex-1 text-[16px] font-semibold ${
-                  o.destrutiva ? 'text-destaque' : 'text-texto'
+                  o.destrutiva ? 'text-destaqueTexto' : 'text-texto'
                 }`}>
                 {o.rotulo}
               </Text>
-              {o.marcada ? <Ionicons name="checkmark" size={20} color={cores.destaque} /> : null}
+              {o.marcada ? <Ionicons name="checkmark" size={20} color={cores.destaqueTexto} /> : null}
             </Pressable>
           ))}
 

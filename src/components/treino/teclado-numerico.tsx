@@ -1,28 +1,33 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, View } from 'react-native';
+import { type ReactNode } from 'react';
+import { type LayoutChangeEvent, Pressable, Text, View } from 'react-native';
+import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { cores } from '@/constants/tema';
+import { DURACAO, cores } from '@/constants/tema';
 import { usarTreinoAtivo } from '@/store/treino-ativo';
 
 /**
  * Teclado próprio em vez do teclado do sistema.
  *
  * Motivo: o teclado numérico do Android muda de layout entre fabricantes,
- * abre e fecha com animação e rouba metade da tela. Aqui os alvos têm
- * ~56dp, ficam sempre no mesmo lugar e incluem ações do domínio (±2,5 kg,
- * concluir série, próximo campo) — é o que faz caber em 2 toques.
+ * abre e fecha com animação própria e rouba metade da tela sem avisar a
+ * altura. Aqui as teclas têm 54dp, ficam sempre no mesmo lugar, e o
+ * componente informa a própria altura — é isso que permite rolar a lista
+ * para a série focada não ficar escondida atrás dele.
  */
 function Tecla({
   children,
   aoTocar,
   variante = 'normal',
   desabilitada,
+  acessibilidade,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   aoTocar: () => void;
   variante?: 'normal' | 'acao' | 'confirmar';
   desabilitada?: boolean;
+  acessibilidade: string;
 }) {
   const fundo =
     variante === 'confirmar'
@@ -35,6 +40,8 @@ function Tecla({
     <Pressable
       onPress={aoTocar}
       disabled={desabilitada}
+      accessibilityRole="button"
+      accessibilityLabel={acessibilidade}
       style={{ height: 54 }}
       className={`flex-1 items-center justify-center rounded-xl ${fundo} ${
         desabilitada ? 'opacity-30' : ''
@@ -46,13 +53,19 @@ function Tecla({
 
 function Digito({ valor, aoTocar }: { valor: string; aoTocar: (v: string) => void }) {
   return (
-    <Tecla aoTocar={() => aoTocar(valor)}>
+    <Tecla aoTocar={() => aoTocar(valor)} acessibilidade={valor}>
       <Text className="text-2xl font-bold text-texto">{valor}</Text>
     </Tecla>
   );
 }
 
-export function TecladoNumerico({ aoConcluirSerie }: { aoConcluirSerie: (serieId: number) => void }) {
+export function TecladoNumerico({
+  aoConcluirSerie,
+  aoMedirAltura,
+}: {
+  aoConcluirSerie: (serieId: number) => void;
+  aoMedirAltura: (altura: number) => void;
+}) {
   const insets = useSafeAreaInsets();
   const foco = usarTreinoAtivo((s) => s.foco);
   const digitar = usarTreinoAtivo((s) => s.digitar);
@@ -64,15 +77,27 @@ export function TecladoNumerico({ aoConcluirSerie }: { aoConcluirSerie: (serieId
   if (!foco) return null;
   const ehPeso = foco.campo === 'peso';
 
+  function medir(e: LayoutChangeEvent) {
+    aoMedirAltura(e.nativeEvent.layout.height);
+  }
+
   return (
-    <View
+    <Animated.View
+      entering={SlideInDown.duration(DURACAO.media)}
+      exiting={SlideOutDown.duration(DURACAO.rapida)}
+      onLayout={medir}
       style={{ paddingBottom: insets.bottom + 8 }}
       className="border-t border-borda bg-superficie px-3 pt-2">
       <View className="mb-2 flex-row items-center justify-between px-1">
-        <Text className="text-xs font-bold uppercase tracking-wider text-texto3">
+        <Text className="text-xs font-bold uppercase tracking-wider text-texto2">
           {ehPeso ? 'Peso (kg)' : 'Repetições'}
         </Text>
-        <Pressable onPress={desfocar} hitSlop={12} className="flex-row items-center gap-1">
+        <Pressable
+          onPress={desfocar}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar teclado"
+          hitSlop={14}
+          className="flex-row items-center gap-1">
           <Text className="text-xs font-bold uppercase tracking-wider text-texto2">Fechar</Text>
           <Ionicons name="chevron-down" size={14} color={cores.texto2} />
         </Pressable>
@@ -83,7 +108,7 @@ export function TecladoNumerico({ aoConcluirSerie }: { aoConcluirSerie: (serieId
           <Digito valor="1" aoTocar={(v) => void digitar(v)} />
           <Digito valor="2" aoTocar={(v) => void digitar(v)} />
           <Digito valor="3" aoTocar={(v) => void digitar(v)} />
-          <Tecla aoTocar={() => void apagar()} variante="acao">
+          <Tecla aoTocar={() => void apagar()} variante="acao" acessibilidade="Apagar">
             <Ionicons name="backspace-outline" size={22} color={cores.texto} />
           </Tecla>
         </View>
@@ -92,7 +117,10 @@ export function TecladoNumerico({ aoConcluirSerie }: { aoConcluirSerie: (serieId
           <Digito valor="4" aoTocar={(v) => void digitar(v)} />
           <Digito valor="5" aoTocar={(v) => void digitar(v)} />
           <Digito valor="6" aoTocar={(v) => void digitar(v)} />
-          <Tecla aoTocar={() => void incrementar(-1)} variante="acao">
+          <Tecla
+            aoTocar={() => void incrementar(-1)}
+            variante="acao"
+            acessibilidade={ehPeso ? 'Diminuir 2,5 quilos' : 'Diminuir uma repetição'}>
             <Text className="text-base font-bold text-texto">{ehPeso ? '−2,5' : '−1'}</Text>
           </Tecla>
         </View>
@@ -101,24 +129,33 @@ export function TecladoNumerico({ aoConcluirSerie }: { aoConcluirSerie: (serieId
           <Digito valor="7" aoTocar={(v) => void digitar(v)} />
           <Digito valor="8" aoTocar={(v) => void digitar(v)} />
           <Digito valor="9" aoTocar={(v) => void digitar(v)} />
-          <Tecla aoTocar={() => void incrementar(1)} variante="acao">
+          <Tecla
+            aoTocar={() => void incrementar(1)}
+            variante="acao"
+            acessibilidade={ehPeso ? 'Aumentar 2,5 quilos' : 'Aumentar uma repetição'}>
             <Text className="text-base font-bold text-texto">{ehPeso ? '+2,5' : '+1'}</Text>
           </Tecla>
         </View>
 
         <View className="flex-row gap-2">
-          <Tecla aoTocar={() => void digitar(',')} desabilitada={!ehPeso}>
+          <Tecla
+            aoTocar={() => void digitar(',')}
+            desabilitada={!ehPeso}
+            acessibilidade="Vírgula decimal">
             <Text className="text-2xl font-bold text-texto">,</Text>
           </Tecla>
           <Digito valor="0" aoTocar={(v) => void digitar(v)} />
-          <Tecla aoTocar={proximoCampo} variante="acao">
+          <Tecla aoTocar={proximoCampo} variante="acao" acessibilidade="Próximo campo">
             <Ionicons name="arrow-forward" size={22} color={cores.texto} />
           </Tecla>
-          <Tecla aoTocar={() => aoConcluirSerie(foco.serieId)} variante="confirmar">
+          <Tecla
+            aoTocar={() => aoConcluirSerie(foco.serieId)}
+            variante="confirmar"
+            acessibilidade="Concluir série">
             <Ionicons name="checkmark" size={26} color="#FFFFFF" />
           </Tecla>
         </View>
       </View>
-    </View>
+    </Animated.View>
   );
 }

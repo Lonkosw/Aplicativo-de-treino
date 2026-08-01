@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import ReorderableList, {
   reorderItems,
@@ -48,10 +48,11 @@ function LinhaItem({
         <Pressable
           onLongPress={arrastar}
           delayLongPress={140}
-          hitSlop={6}
-          style={{ minWidth: 34, minHeight: ALVO_TOQUE }}
-          className="items-center justify-center">
-          <Ionicons name="reorder-three" size={24} color={cores.texto3} />
+          accessibilityRole="button"
+          accessibilityLabel={`Reordenar ${item.nome}. Segure e arraste.`}
+          style={{ width: ALVO_TOQUE, minHeight: ALVO_TOQUE }}
+          className="items-center justify-center rounded-lg active:bg-superficie2">
+          <Ionicons name="reorder-three" size={24} color={cores.texto2} />
         </Pressable>
 
         <View className="flex-1">
@@ -73,7 +74,7 @@ function LinhaItem({
         <BotaoIcone icone="add" acessibilidade="Mais uma série" aoTocar={() => aoMudarSeries(1)} />
         <BotaoIcone
           icone={item.notas ? 'document-text' : 'document-text-outline'}
-          cor={item.notas ? cores.destaque : cores.texto3}
+          cor={item.notas ? cores.destaqueTexto : cores.texto3}
           acessibilidade="Notas do exercício"
           aoTocar={aoEditarNotas}
         />
@@ -105,17 +106,38 @@ export default function TelaEditorRotina() {
     }
     setItens(lista);
     setCarregando(false);
+    carregado.current = true;
   }, [rotinaId]);
 
+  /**
+   * Guarda os valores atuais numa ref para o salvamento de saída não pegar
+   * um estado velho pelo closure.
+   */
+  const cabecalho = useRef({ nome, notas });
+  useEffect(() => {
+    cabecalho.current = { nome, notas };
+  }, [nome, notas]);
+
+  const carregado = useRef(false);
+  const salvarCabecalho = useCallback(async () => {
+    // Sair antes do primeiro carregamento gravaria nome vazio por cima.
+    if (!carregado.current) return;
+    await atualizarRotina(rotinaId, cabecalho.current);
+  }, [rotinaId]);
+
+  /**
+   * Salva ao PERDER O FOCO, e não só no botão de voltar da tela.
+   * O botão físico e o gesto de voltar do Android não passam pelo nosso
+   * cabeçalho — antes disso, sair por eles perdia o nome e as notas.
+   */
   useFocusEffect(
     useCallback(() => {
       void recarregar();
-    }, [recarregar]),
+      return () => {
+        void salvarCabecalho();
+      };
+    }, [recarregar, salvarCabecalho]),
   );
-
-  async function salvarCabecalho() {
-    await atualizarRotina(rotinaId, { nome, notas });
-  }
 
   async function aoReordenar({ from, to }: ReorderableListReorderEvent) {
     // Atualiza a lista local primeiro para o arraste não "voltar" na tela,

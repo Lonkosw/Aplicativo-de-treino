@@ -41,6 +41,15 @@ export function volumeCompacto(kg: number) {
   return `${Math.round(kg)} kg`;
 }
 
+/** 12500 -> "12,5k" | 850 -> "850" — rótulo curto de eixo de gráfico. */
+export function eixoNumero(v: number) {
+  if (Math.abs(v) >= 1000) {
+    const k = Math.round(v / 100) / 10;
+    return `${String(k).replace('.', ',')}k`;
+  }
+  return String(Math.round(v));
+}
+
 const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
 
 /** "Hoje, 19:30" | "Ontem, 07:15" | "qua, 12 mar" */
