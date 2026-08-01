@@ -209,16 +209,30 @@ export async function seriesDoTreinoAnterior(exercicioId: number, treinoAtualId?
   const condicoes = [eq(treinoExercicios.exercicioId, exercicioId), eq(series.concluida, true)];
   if (treinoAtualId != null) condicoes.push(ne(treinos.id, treinoAtualId));
 
+  /**
+   * Busca o `treino_exercicios` mais recente, e não o treino mais recente.
+   *
+   * Faz diferença quando o mesmo exercício aparece duas vezes no treino
+   * anterior (supino no começo e no fim, por exemplo): filtrando só por
+   * treino, as séries das duas aparições voltavam misturadas, com números
+   * repetidos (1, 1, 2, 2), e a referência da linha saía errada.
+   *
+   * ATENÇÃO: o driver expo-sqlite devolve cada linha como um objeto com as
+   * chaves iguais aos nomes das colunas. Selecionar `treinos.id` junto com
+   * `treino_exercicios.id` faz as duas virarem a chave "id" e uma sobrescreve
+   * a outra — os valores voltam trocados, sem erro nenhum. Por isso aqui só
+   * um `id` é selecionado; a data vem numa segunda consulta.
+   */
   const [ultimo] = await db
-    .select({ treinoId: treinos.id, data: treinos.iniciadoEm })
+    .select({ treinoExercicioId: treinoExercicios.id, data: treinos.iniciadoEm })
     .from(series)
     .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
     .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
     .where(and(...condicoes, isNotNull(treinos.finalizadoEm)))
-    .orderBy(desc(treinos.iniciadoEm))
+    .orderBy(desc(treinos.iniciadoEm), asc(treinoExercicios.ordem))
     .limit(1);
 
-  if (!ultimo) return { treinoId: null as number | null, data: null as Date | null, series: [] };
+  if (!ultimo) return { data: null as Date | null, series: [] };
 
   const linhas = await db
     .select({
@@ -228,15 +242,13 @@ export async function seriesDoTreinoAnterior(exercicioId: number, treinoAtualId?
       tipo: series.tipo,
     })
     .from(series)
-    .innerJoin(treinoExercicios, eq(series.treinoExercicioId, treinoExercicios.id))
     .where(
       and(
-        eq(treinoExercicios.treinoId, ultimo.treinoId),
-        eq(treinoExercicios.exercicioId, exercicioId),
+        eq(series.treinoExercicioId, ultimo.treinoExercicioId),
         eq(series.concluida, true),
       ),
     )
     .orderBy(asc(series.numeroSerie));
 
-  return { treinoId: ultimo.treinoId, data: ultimo.data, series: linhas };
+  return { data: ultimo.data, series: linhas };
 }

@@ -161,6 +161,45 @@ async function main() {
     assert.equal(sequenciaDeSemanas([]), 0);
   });
 
+  console.log('\nlimites do driver');
+
+  await teste('duas colunas "id" no mesmo select se sobrescrevem (armadilha)', async () => {
+    // O driver expo-sqlite devolve cada linha como objeto com as chaves
+    // iguais aos NOMES das colunas. Selecionar dois `id` de tabelas
+    // diferentes faz um sobrescrever o outro, sem erro nenhum: os valores
+    // voltam trocados. Este teste fixa o comportamento para que ninguém
+    // "conserte" uma consulta reintroduzindo o padrão.
+    const [t] = await db
+      .insert(treinos)
+      .values({ nome: 'Colisão', iniciadoEm: new Date(), duracaoSegundos: 0 })
+      .returning();
+    const [te] = await db
+      .insert(treinoExercicios)
+      .values({ treinoId: t.id, exercicioId: 1, ordem: 0 })
+      .returning();
+
+    try {
+      const [linha] = await db
+        .select({ idExercicioNoTreino: treinoExercicios.id, idTreino: treinos.id })
+        .from(treinoExercicios)
+        .innerJoin(treinos, eq(treinoExercicios.treinoId, treinos.id))
+        .where(eq(treinoExercicios.id, te.id));
+
+      // Um dos dois volta `undefined`: a chave "id" do objeto da linha só
+      // comporta uma coluna. Se isto passar a falhar, o driver mudou e a
+      // restrição pode ser revista.
+      assert.ok(
+        linha.idExercicioNoTreino === undefined || linha.idTreino === undefined,
+        `esperava um dos ids indefinido, veio ${JSON.stringify(linha)}`,
+      );
+    } finally {
+      // O finally importa: sem `finalizadoEm` este treino conta como ativo
+      // e, se o assert lançasse antes da limpeza, quebraria os testes
+      // seguintes.
+      await db.delete(treinos).where(eq(treinos.id, t.id));
+    }
+  });
+
   console.log('\nchaves estrangeiras e cascade');
 
   await teste('PRAGMA foreign_keys está ligado', () => {
@@ -325,6 +364,43 @@ async function main() {
     assert.equal(prSemOAtual.maiorPeso, 45);
 
     await db.delete(treinos).where(eq(treinos.id, emAndamento.id));
+  });
+
+  await teste('exercício repetido no mesmo treino não mistura as referências', async () => {
+    // Um treino com o MESMO exercício duas vezes, com cargas diferentes.
+    const [t] = await db
+      .insert(treinos)
+      .values({
+        nome: 'Duplo',
+        iniciadoEm: new Date(Date.now() - 3 * DIA),
+        finalizadoEm: new Date(Date.now() - 3 * DIA + 3600_000),
+        duracaoSegundos: 3600,
+      })
+      .returning();
+
+    const [primeiro] = await db
+      .insert(treinoExercicios)
+      .values({ treinoId: t.id, exercicioId: 2, ordem: 0 })
+      .returning();
+    const [segundo] = await db
+      .insert(treinoExercicios)
+      .values({ treinoId: t.id, exercicioId: 2, ordem: 5 })
+      .returning();
+
+    await db.insert(series).values([
+      { treinoExercicioId: primeiro.id, numeroSerie: 1, peso: 60, repeticoes: 10, concluida: true },
+      { treinoExercicioId: primeiro.id, numeroSerie: 2, peso: 60, repeticoes: 10, concluida: true },
+      { treinoExercicioId: segundo.id, numeroSerie: 1, peso: 20, repeticoes: 20, concluida: true },
+    ]);
+
+    const anterior = await seriesDoTreinoAnterior(2);
+    // Deve trazer só UMA das aparições, com numeração sem repetição.
+    const numeros = anterior.series.map((s) => s.numeroSerie);
+    assert.deepEqual(numeros, [...new Set(numeros)], `numeração duplicada: ${numeros.join(',')}`);
+    const pesos = new Set(anterior.series.map((s) => s.peso));
+    assert.equal(pesos.size, 1, 'não pode misturar as cargas das duas aparições');
+
+    await db.delete(treinos).where(eq(treinos.id, t.id));
   });
 
   await teste('histórico agrupa por treino e soma volume sem aquecimento', async () => {
