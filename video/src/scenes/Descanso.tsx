@@ -1,8 +1,10 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
   Interactive,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -34,6 +36,10 @@ export const Descanso: React.FC = () => {
         paddingTop: 200,
       }}
     >
+      {[0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75].map((s) => (
+        <Audio key={s} name="SFX tique" from={s * fps} src={staticFile("sfx/tick.wav")} volume={0.35} />
+      ))}
+      <Audio name="SFX notificacao" from={3 * fps - 1} src={staticFile("sfx/snapchat-notification.wav")} volume={0.6} />
       <Interactive.Div
         name="Title"
         style={{

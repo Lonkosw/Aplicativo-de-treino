@@ -1,9 +1,11 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
   Interactive,
   interpolate,
   Sequence,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -49,6 +51,13 @@ export const Hook: React.FC = () => {
         paddingTop: 260,
       }}
     >
+      <Audio name="SFX pergunta" src={staticFile("sfx/pop.wav")} volume={0.5} />
+      <Audio name="SFX nota" from={0.4 * fps} src={staticFile("sfx/pop.wav")} volume={0.4} />
+      <Audio name="SFX digitando 1" from={0.7 * fps} src={staticFile("sfx/typing.wav")} volume={0.45} />
+      <Audio name="SFX digitando 2" from={1.2 * fps} src={staticFile("sfx/typing.wav")} volume={0.45} />
+      <Audio name="SFX digitando 3" from={1.7 * fps} src={staticFile("sfx/typing.wav")} volume={0.45} />
+      <Audio name="SFX nota some" from={2.6 * fps} src={staticFile("sfx/whoosh.wav")} volume={0.5} />
+      <Audio name="SFX resposta" from={2.9 * fps} src={staticFile("sfx/whip.wav")} volume={0.8} />
       <Interactive.Div
         name="Question"
         style={{

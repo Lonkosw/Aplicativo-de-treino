@@ -1,3 +1,4 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
@@ -5,6 +6,7 @@ import {
   interpolate,
   interpolateColors,
   Sequence,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -50,6 +52,8 @@ const SetRow: React.FC<{
         }),
       }}
     >
+      <Audio name="SFX serie" src={staticFile("sfx/pop.wav")} volume={0.3} />
+      <Audio name="SFX concluir" from={0.5 * fps - 6} src={staticFile("sfx/mouse-click.wav")} volume={0.8} />
       <div style={{ width: 90, color: "#A0A0A8" }}>{serie}</div>
       <div style={{ flex: 1, color: "#83838B", fontSize: 34, fontWeight: 500 }}>
         {anterior}
@@ -189,6 +193,7 @@ export const Registro: React.FC = () => {
         <Sequence from={2.5 * fps} layout="none" name="Set 4">
           <SetRow serie={4} anterior="75 × 6" kg="82,5" reps="6" />
         </Sequence>
+        <Audio name="SFX botao" from={3 * fps} src={staticFile("sfx/pop.wav")} volume={0.5} />
         <Interactive.Div
           name="Finish button"
           style={{

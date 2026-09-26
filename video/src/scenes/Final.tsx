@@ -1,3 +1,4 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
@@ -24,6 +25,9 @@ export const Final: React.FC = () => {
         justifyContent: "center",
       }}
     >
+      <Audio name="SFX icone" src={staticFile("sfx/pop.wav")} volume={0.6} />
+      <Audio name="SFX CTA" from={1.3 * fps} src={staticFile("sfx/pop.wav")} volume={0.5} />
+      <Audio name="SFX toque CTA" from={2.4 * fps - 6} src={staticFile("sfx/mouse-click.wav")} volume={0.8} />
       <Interactive.Div
         name="Glow"
         style={{
@@ -110,12 +114,22 @@ export const Final: React.FC = () => {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
-          scale: interpolate(frame, [1.3 * fps, 1.9 * fps], [0.6, 1], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-            easing: Easing.spring({ damping: 10 }),
-            output: "perceptual-scale",
-          }),
+          scale: interpolate(
+            frame,
+            [1.3 * fps, 1.9 * fps, 2.3 * fps, 2.4 * fps, 2.7 * fps],
+            [0.6, 1, 1, 0.9, 1],
+            {
+              extrapolateLeft: "clamp",
+              extrapolateRight: "clamp",
+              easing: [
+                Easing.spring({ damping: 10 }),
+                Easing.linear,
+                Easing.bezier(0.33, 0, 0.67, 1),
+                Easing.spring({ damping: 12 }),
+              ],
+              output: "perceptual-scale",
+            },
+          ),
         }}
       >
         Baixe o APK grátis

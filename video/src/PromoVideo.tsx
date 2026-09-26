@@ -1,6 +1,6 @@
 import { Audio } from "@remotion/media";
 import { springTiming, TransitionSeries } from "@remotion/transitions";
-import { staticFile } from "remotion";
+import { Sequence, staticFile } from "remotion";
 import { zoomFade } from "./zoom-fade";
 import { Descanso } from "./scenes/Descanso";
 import { Evolucao } from "./scenes/Evolucao";
@@ -14,7 +14,23 @@ import { Registro } from "./scenes/Registro";
 // As transições terminam nas entradas da música (4 s, 8 s, 12 s...).
 export const PromoVideo: React.FC = () => (
   <>
-    <Audio name="Trilha" src={staticFile("trilha.mp3")} />
+    <Audio name="Trilha" src={staticFile("trilha.mp3")} volume={0.7} />
+    {/* Início de cada transição: 105, 225, 345, 450 e 540. */}
+    <Sequence name="SFX swoosh 1" from={105} layout="none">
+      <Audio src={staticFile("sfx/swoosh.wav")} volume={0.9} />
+    </Sequence>
+    <Sequence name="SFX swoosh 2" from={225} layout="none">
+      <Audio src={staticFile("sfx/swoosh.wav")} volume={0.9} />
+    </Sequence>
+    <Sequence name="SFX swoosh 3" from={345} layout="none">
+      <Audio src={staticFile("sfx/swoosh.wav")} volume={0.9} />
+    </Sequence>
+    <Sequence name="SFX swoosh 4" from={450} layout="none">
+      <Audio src={staticFile("sfx/swoosh.wav")} volume={0.9} />
+    </Sequence>
+    <Sequence name="SFX swoosh 5" from={540} layout="none">
+      <Audio src={staticFile("sfx/swoosh.wav")} volume={0.9} />
+    </Sequence>
     <TransitionSeries>
       <TransitionSeries.Sequence name="Hook" durationInFrames={120}>
         <Hook />

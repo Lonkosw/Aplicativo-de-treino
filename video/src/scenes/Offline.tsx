@@ -1,9 +1,11 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
   Interactive,
   interpolate,
   Sequence,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -16,6 +18,7 @@ const Palavra: React.FC<{ texto: string }> = ({ texto }) => {
 
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <Audio name="SFX palavra" src={staticFile("sfx/pop.wav")} volume={0.6} />
       <Interactive.Div
         name="Word"
         style={{
@@ -59,6 +62,8 @@ export const Offline: React.FC = () => {
       <Sequence from={1 * fps} durationInFrames={0.5 * fps} name="Sem nuvem" layout="none">
         <Palavra texto="Sem nuvem." />
       </Sequence>
+      <Audio name="SFX offline" from={1.5 * fps} src={staticFile("sfx/whip.wav")} volume={0.7} />
+      <Audio name="SFX subtitulo" from={1.9 * fps} src={staticFile("sfx/pop.wav")} volume={0.25} />
       <Sequence from={1.5 * fps} name="Offline" layout="none">
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
           <Interactive.Div

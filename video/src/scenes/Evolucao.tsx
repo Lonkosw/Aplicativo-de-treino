@@ -1,8 +1,10 @@
+import { Audio } from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
   Interactive,
   interpolate,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -54,6 +56,8 @@ export const Evolucao: React.FC = () => {
         paddingTop: 200,
       }}
     >
+      <Audio name="SFX barras" from={0.5 * fps} src={staticFile("sfx/rise.wav")} volume={0.5} />
+      <Audio name="SFX recorde" from={2.5 * fps - 4} src={staticFile("sfx/ding.wav")} volume={0.7} />
       <Interactive.Div
         name="Title"
         style={{
