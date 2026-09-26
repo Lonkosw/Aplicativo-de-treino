@@ -177,16 +177,16 @@ export const Registro: React.FC = () => {
           <div style={{ width: 110, textAlign: "center" }}>REPS</div>
           <div style={{ width: 72 }} />
         </div>
-        <Sequence from={0.6 * fps} layout="none" name="Set 1">
+        <Sequence from={1 * fps} layout="none" name="Set 1">
           <SetRow serie={1} anterior="75 × 10" kg="80" reps="10" />
         </Sequence>
-        <Sequence from={1.3 * fps} layout="none" name="Set 2">
+        <Sequence from={1.5 * fps} layout="none" name="Set 2">
           <SetRow serie={2} anterior="75 × 8" kg="80" reps="9" />
         </Sequence>
         <Sequence from={2 * fps} layout="none" name="Set 3">
           <SetRow serie={3} anterior="75 × 8" kg="80" reps="8" />
         </Sequence>
-        <Sequence from={2.7 * fps} layout="none" name="Set 4">
+        <Sequence from={2.5 * fps} layout="none" name="Set 4">
           <SetRow serie={4} anterior="75 × 6" kg="82,5" reps="6" />
         </Sequence>
         <Interactive.Div
@@ -202,11 +202,11 @@ export const Registro: React.FC = () => {
             fontWeight: 800,
             color: "#FFFFFF",
             backgroundColor: "#E11D2B",
-            opacity: interpolate(frame, [3.5 * fps, 3.8 * fps], [0, 1], {
+            opacity: interpolate(frame, [3 * fps, 3.2 * fps], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             }),
-            scale: interpolate(frame, [3.5 * fps, 4 * fps], [0.8, 1], {
+            scale: interpolate(frame, [3 * fps, 3.5 * fps], [0.8, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
               easing: Easing.spring({ damping: 10 }),

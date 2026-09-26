@@ -97,11 +97,11 @@ export const Evolucao: React.FC = () => {
           fontSize: 48,
           fontWeight: 800,
           color: "#F5F5F7",
-          opacity: interpolate(frame, [2.1 * fps, 2.3 * fps], [0, 1], {
+          opacity: interpolate(frame, [2.5 * fps, 2.7 * fps], [0, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           }),
-          scale: interpolate(frame, [2.1 * fps, 2.6 * fps], [0.4, 1], {
+          scale: interpolate(frame, [2.5 * fps, 3 * fps], [0.4, 1], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
             easing: Easing.spring({ damping: 9 }),

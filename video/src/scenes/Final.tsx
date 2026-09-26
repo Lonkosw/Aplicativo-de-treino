@@ -118,7 +118,22 @@ export const Final: React.FC = () => {
           }),
         }}
       >
-        Comece hoje
+        Baixe o APK grátis
+      </Interactive.Div>
+      <Interactive.Div
+        name="Platform"
+        style={{
+          fontSize: 44,
+          fontWeight: 500,
+          color: "#83838B",
+          marginTop: 36,
+          opacity: interpolate(frame, [1.8 * fps, 2.1 * fps], [0, 1], {
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }),
+        }}
+      >
+        Para Android
       </Interactive.Div>
     </AbsoluteFill>
   );
