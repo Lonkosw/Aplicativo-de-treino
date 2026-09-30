@@ -1,0 +1,370 @@
+/* Fonte Mitr (a mesma do Termo), incluída localmente */
+@font-face { font-family: 'Mitr'; font-weight: 300; font-display: block; src: url('fontes/mitr-300.woff2') format('woff2'); }
+@font-face { font-family: 'Mitr'; font-weight: 400; font-display: block; src: url('fontes/mitr-400.woff2') format('woff2'); }
+@font-face { font-family: 'Mitr'; font-weight: 500; font-display: block; src: url('fontes/mitr-500.woff2') format('woff2'); }
+@font-face { font-family: 'Mitr'; font-weight: 600; font-display: block; src: url('fontes/mitr-600.woff2') format('woff2'); }
+
+/* Paleta inspirada no Termo (term.ooo) */
+:root {
+  --bg: #6e5c62;
+  --celula: #615458;
+  --celula-borda: #4c4347;
+  --escuro: #312a2c;
+  --tecla: #4c4347;
+  --texto: #fafaff;
+  --texto-suave: #d9cfd2;
+  --certo: #3aa394;
+  --repetido: #d3ad69;
+  --erro: #e2685f;
+  --faltou: #8b4a4f;
+  --jogador2: #6a8fd6;
+  --sombra: 0 10px 40px rgba(0, 0, 0, .35);
+  --raio: 10px;
+}
+
+.tema-claro {
+  --bg: #f3ece6;
+  --celula: #e3d9d3;
+  --celula-borda: #cbbdb5;
+  --escuro: #ffffff;
+  --tecla: #d7cbc4;
+  --texto: #312a2c;
+  --texto-suave: #6e5c62;
+  --faltou: #e7b3ae;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Mitr', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--texto);
+  overflow: hidden;
+}
+
+.frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* ---------- Cabeçalho ---------- */
+.topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 8px;
+}
+.topo .grupo { display: flex; gap: 8px; }
+.icone {
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border: 2px solid var(--texto-suave);
+  border-radius: 8px;
+  color: var(--texto-suave);
+  opacity: .85;
+}
+.icone svg { width: 22px; height: 22px; }
+.logo {
+  white-space: nowrap;
+  font-weight: 600;
+  font-size: 44px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+.logo .sim {
+  display: inline-grid;
+  place-items: center;
+  background: var(--certo);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 8px;
+  margin-right: 2px;
+  font-size: .82em;
+  height: 1.1em;
+  vertical-align: 3px;
+}
+
+/* ---------- HUD ---------- */
+.hud {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 6px 28px 10px;
+}
+.stat {
+  background: var(--escuro);
+  border-radius: var(--raio);
+  padding: 8px 18px;
+  min-width: 118px;
+  text-align: center;
+}
+.stat small { display: block; font-size: 12px; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 1px; }
+.stat b { font-size: 26px; font-weight: 500; line-height: 1.2; }
+.stat.tempo b { color: var(--certo); font-size: 30px; }
+.stat.tempo.alerta b { color: var(--erro); }
+.vidas { display: flex; gap: 4px; justify-content: center; padding-top: 6px; }
+.vidas i { width: 18px; height: 18px; color: var(--erro); }
+.vidas i.perdida { color: var(--celula-borda); }
+
+.botao {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; font-weight: 500; font-size: 17px;
+  color: var(--texto);
+  background: var(--tecla);
+  border: 0; border-radius: 8px;
+  padding: 12px 22px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.botao svg { width: 20px; height: 20px; }
+.botao.primario { background: var(--certo); color: #fff; }
+.botao.perigo { background: transparent; border: 2px solid var(--erro); color: var(--erro); }
+.botao.grande { font-size: 22px; padding: 18px 34px; border-radius: 10px; }
+.botao.bloco { width: 100%; }
+.botao.fantasma { background: transparent; border: 2px solid var(--texto-suave); color: var(--texto-suave); }
+
+/* ---------- Campo de resposta ---------- */
+.entrada {
+  display: flex; gap: 10px; justify-content: center; align-items: stretch;
+  padding: 4px 28px 12px;
+}
+.campo {
+  width: 560px;
+  border: 4px solid var(--celula-borda);
+  border-bottom-width: 8px;
+  background: transparent;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--texto);
+  text-transform: uppercase;
+  display: flex; align-items: center;
+}
+.campo .cursor { display: inline-block; width: 3px; height: 1.05em; background: var(--texto); margin-left: 2px; }
+.campo .dica { color: var(--texto-suave); opacity: .6; text-transform: none; font-weight: 400; font-size: 20px; }
+.campo.erro { border-color: var(--erro); transform: translateX(-6px); }
+.campo.repetido { border-color: var(--repetido); }
+
+/* ---------- Toast (mensagens de feedback) ---------- */
+.toast {
+  position: absolute;
+  left: 50%; transform: translateX(-50%);
+  background: var(--texto);
+  color: var(--escuro);
+  padding: 10px 22px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 18px;
+  box-shadow: var(--sombra);
+  z-index: 5;
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 10px;
+}
+.toast .tag { border-radius: 6px; padding: 1px 8px; color: #fff; font-size: 15px; }
+.toast .tag.certo { background: var(--certo); }
+.toast .tag.erro { background: var(--erro); }
+.toast .tag.repetido { background: var(--repetido); }
+.tema-claro .toast { background: var(--escuro); color: #312a2c; }
+
+/* ---------- Tabela periódica ---------- */
+.area-tabela { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 6px 28px 20px; min-height: 0; }
+.tabela {
+  --c: 62px;
+  display: grid;
+  grid-template-columns: repeat(18, var(--c));
+  grid-template-rows: repeat(7, calc(var(--c) * .86)) 14px repeat(2, calc(var(--c) * .86));
+  gap: 4px;
+}
+.cel {
+  position: relative;
+  padding-top: calc(var(--c) * .12);
+  background: var(--celula);
+  border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.cel .n { position: absolute; top: 3px; left: 5px; font-size: calc(var(--c) * .17); color: var(--texto-suave); opacity: .8; line-height: 1; }
+.cel .s { font-size: calc(var(--c) * .38); font-weight: 600; line-height: 1; }
+.cel .nome { font-size: calc(var(--c) * .15); line-height: 1; margin-top: 3px; opacity: .95; max-width: 94%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cel .fantasma { opacity: .28; }
+.cel.certo { background: var(--certo); color: #fff; }
+.cel.certo .n { color: #fff; }
+.cel.novo { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(255,255,255,.6); z-index: 2; }
+.cel.repetido { background: var(--repetido); color: #fff; box-shadow: 0 0 0 3px #fff; z-index: 2; }
+.cel.repetido .n { color: #fff; }
+.cel.faltou { background: var(--faltou); color: #fff; }
+.cel.faltou .n { color: #fff; }
+.cel.j2 { background: var(--jogador2); color: #fff; }
+.cel.j2 .n { color: #fff; }
+.cel.marca { background: transparent; border: 2px dashed var(--celula-borda); }
+.cel.marca .n { position: static; font-size: calc(var(--c) * .2); }
+.tabela.oculta .cel:not(.marca) { background: var(--celula); color: transparent; filter: blur(3px); }
+.tabela.oculta .cel .n { color: transparent; }
+
+.legenda { display: flex; gap: 16px; font-size: 13px; color: var(--texto-suave); justify-content: center; padding-bottom: 6px; }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+
+/* ---------- Overlay / modal ---------- */
+.overlay {
+  position: absolute; inset: 0;
+  background: rgba(30, 24, 26, .62);
+  display: grid; place-items: center;
+  z-index: 10;
+}
+.modal {
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 30px 34px;
+  width: 560px;
+  box-shadow: var(--sombra);
+  position: relative;
+}
+.modal h2 { font-size: 30px; font-weight: 600; text-align: center; margin-bottom: 6px; }
+.modal .sub { text-align: center; color: var(--texto-suave); margin-bottom: 18px; }
+.modal .fechar { position: absolute; top: 16px; right: 18px; width: 26px; height: 26px; color: var(--texto-suave); }
+.modal p, .modal li { font-size: 16px; line-height: 1.5; font-weight: 300; }
+.modal ul { padding-left: 20px; margin: 8px 0 16px; }
+.modal hr { border: 0; border-top: 1px solid var(--celula-borda); margin: 16px 0; }
+.acoes { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+.exemplo { display: flex; gap: 12px; align-items: center; margin: 10px 0; }
+.exemplo .cel { --c: 56px; width: 56px; height: 50px; flex: none; }
+.exemplo p { flex: 1; }
+
+.resumo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 8px 0 12px; }
+.resumo div { text-align: center; }
+.resumo b { display: block; font-size: 30px; font-weight: 500; }
+.resumo small { font-size: 12px; color: var(--texto-suave); text-transform: uppercase; letter-spacing: .5px; }
+
+.selo {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--escuro); border-radius: 10px; padding: 10px 14px; margin-top: 8px;
+}
+.selo .medalha { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--repetido); color: #fff; flex: none; }
+.selo .medalha svg { width: 22px; height: 22px; }
+.selo b { font-weight: 500; }
+.selo small { display: block; color: var(--texto-suave); font-size: 13px; }
+
+.barra { height: 10px; border-radius: 5px; background: var(--celula-borda); overflow: hidden; margin: 6px 0 2px; }
+.barra i { display: block; height: 100%; background: var(--certo); }
+
+/* ---------- Menu ---------- */
+.menu { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 20px; }
+.menu .logo { font-size: 78px; }
+.menu .slogan { font-size: 22px; color: var(--texto-suave); font-weight: 300; text-align: center; }
+.menu .botoes { display: flex; flex-direction: column; gap: 12px; width: 340px; }
+.recorde { font-size: 15px; color: var(--texto-suave); display: flex; gap: 18px; }
+.recorde b { color: var(--texto); font-weight: 500; }
+.mini { --c: 22px; gap: 3px; }
+.mini .cel { border-radius: 3px; }
+.mini .cel * { display: none; }
+
+/* ---------- Opções (dificuldade, config) ---------- */
+.opcoes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.opcao {
+  border: 3px solid var(--celula-borda); border-radius: 10px; padding: 12px; text-align: center;
+}
+.opcao.sel { border-color: var(--certo); background: rgba(58, 163, 148, .15); }
+.opcao b { display: block; font-size: 19px; font-weight: 500; }
+.opcao .t { font-size: 24px; color: var(--certo); font-weight: 500; }
+.opcao small { display: block; font-size: 12.5px; color: var(--texto-suave); line-height: 1.35; margin-top: 4px; }
+.rotulo { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--texto-suave); margin: 14px 0 6px; }
+.input {
+  border: 3px solid var(--celula-borda); border-radius: 8px; padding: 10px 14px; font-size: 18px;
+}
+.segmento { display: flex; background: var(--escuro); border-radius: 8px; padding: 4px; gap: 4px; }
+.segmento span { flex: 1; text-align: center; padding: 8px; border-radius: 6px; color: var(--texto-suave); }
+.segmento span.sel { background: var(--tecla); color: var(--texto); }
+
+.linha-config { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--celula-borda); }
+.linha-config p { font-weight: 400; }
+.linha-config small { display: block; color: var(--texto-suave); font-size: 13px; font-weight: 300; }
+.chave { width: 50px; height: 28px; border-radius: 14px; background: var(--celula-borda); position: relative; flex: none; }
+.chave::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.chave.on { background: var(--certo); }
+.chave.on::after { left: 25px; }
+
+/* ---------- Ranking ---------- */
+.pagina { flex: 1; width: 100%; max-width: 860px; margin: 0 auto; padding: 10px 28px 28px; display: flex; flex-direction: column; min-height: 0; }
+.pagina h1 { font-size: 34px; font-weight: 600; text-align: center; margin: 4px 0 14px; }
+.ranking { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+.ranking th { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--texto-suave); font-weight: 400; text-align: left; padding: 0 14px; }
+.ranking td { background: var(--escuro); padding: 12px 14px; font-size: 17px; }
+.ranking td:first-child { border-radius: 8px 0 0 8px; width: 60px; text-align: center; font-weight: 600; }
+.ranking td:last-child { border-radius: 0 8px 8px 0; }
+.ranking tr.voce td { background: var(--certo); color: #fff; }
+.pos { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; }
+.pos.p1 { background: #d3ad69; color: #fff; }
+.pos.p2 { background: #a9a2a4; color: #fff; }
+.pos.p3 { background: #b07a55; color: #fff; }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+.pill { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--tecla); }
+
+/* ---------- Conquistas ---------- */
+.conquistas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.conquista { background: var(--escuro); border-radius: 10px; padding: 14px; display: flex; gap: 12px; align-items: center; }
+.conquista .medalha { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--repetido); color: #fff; flex: none; }
+.conquista .medalha svg { width: 26px; height: 26px; }
+.conquista.bloq { opacity: .5; }
+.conquista.bloq .medalha { background: var(--celula-borda); }
+.conquista b { font-weight: 500; display: block; }
+.conquista small { color: var(--texto-suave); font-size: 13px; line-height: 1.3; display: block; }
+
+/* ---------- Multiplayer ---------- */
+.placar2 { display: flex; gap: 14px; justify-content: center; padding: 6px 28px 10px; }
+.jog { background: var(--escuro); border-radius: 10px; padding: 8px 18px; display: flex; gap: 14px; align-items: center; border: 3px solid transparent; }
+.jog.vez { border-color: var(--certo); }
+.jog.b.vez { border-color: var(--jogador2); }
+.jog .cor { width: 16px; height: 16px; border-radius: 4px; }
+.jog b { font-size: 24px; font-weight: 500; }
+.jog small { color: var(--texto-suave); font-size: 12px; display: block; text-transform: uppercase; }
+
+/* ---------- Mobile ---------- */
+.mobile .topo { padding: 14px 14px 4px; }
+.mobile .icone { width: 36px; height: 36px; }
+.mobile .icone svg { width: 19px; height: 19px; }
+.mobile .logo { font-size: 24px; }
+.mobile .hud { gap: 6px; padding: 6px 12px 8px; }
+.mobile .stat { min-width: 0; flex: 1; padding: 6px 6px; }
+.mobile .stat b { font-size: 20px; }
+.mobile .stat.tempo b { font-size: 22px; }
+.mobile .stat small { font-size: 10px; }
+.mobile .vidas i { width: 14px; height: 14px; }
+.mobile .entrada { padding: 2px 12px 8px; gap: 6px; }
+.mobile .campo { width: auto; flex: 1; font-size: 19px; padding: 8px 12px; }
+.mobile .campo .dica { font-size: 16px; }
+.mobile .entrada .botao { padding: 8px 14px; font-size: 15px; }
+.mobile .area-tabela { justify-content: flex-start; padding: 4px 0 0 12px; overflow: hidden; position: relative; }
+.mobile .area-tabela::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 40px; background: linear-gradient(90deg, transparent, var(--bg)); }
+.mobile .tabela { --c: 54px; gap: 3px; }
+.mobile .toast { font-size: 15px; padding: 8px 14px; }
+.mobile .menu .logo { font-size: 50px; }
+.mobile .menu .slogan { font-size: 17px; }
+.mobile .menu .botoes { width: 100%; }
+.mobile .modal { width: calc(100vw - 24px); padding: 24px 20px; }
+.mobile .modal h2 { font-size: 25px; }
+.mobile .resumo b { font-size: 24px; }
+.mobile .opcoes { grid-template-columns: 1fr; }
+.mobile .opcao { display: grid; grid-template-columns: 1fr auto; text-align: left; align-items: center; column-gap: 8px; padding: 10px 12px; }
+.mobile .opcao .t { grid-row: 1 / 3; grid-column: 2; font-size: 20px; }
+.mobile .pagina { padding: 6px 12px 16px; }
+.mobile .pagina h1 { font-size: 26px; }
+.mobile .ranking td { padding: 10px 8px; font-size: 15px; }
+.mobile .ranking th { padding: 0 8px; }
+.mobile .conquistas { grid-template-columns: 1fr; }
+.mobile .deslize { font-size: 12px; color: var(--texto-suave); text-align: center; padding: 4px 0 8px; }
+.recentes { display: flex; gap: 6px; padding: 0 12px 8px; flex-wrap: wrap; }
+.recentes span { background: var(--certo); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 13px; }
+.recentes em { font-style: normal; font-size: 12px; color: var(--texto-suave); align-self: center; }
+.mobile .placar2, .mobile .hud .jog { flex: 1; min-width: 0; padding: 6px 10px; gap: 8px; }
+.mobile .jog b { font-size: 20px; }
+.mobile .jog small { font-size: 10px; white-space: nowrap; }
+.mobile .hud .stat.tempo { flex: none; min-width: 74px; }

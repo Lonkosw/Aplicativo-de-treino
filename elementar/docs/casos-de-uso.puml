@@ -1,0 +1,43 @@
+@startuml
+' Mesmo diagrama de docs/casos-de-uso.svg, em PlantUML (editável em plantuml.com/plantuml ou no draw.io)
+left to right direction
+skinparam usecase { BackgroundColor #e6f4f1 }
+actor Jogador
+
+rectangle "ELEMENTAR — jogo da tabela periódica" {
+  usecase "UC01 Consultar instruções" as UC01
+  usecase "UC02 Iniciar partida" as UC02
+  usecase "UC03 Selecionar dificuldade" as UC03
+  usecase "UC04 Jogar em dupla\n(multiplayer local)" as UC04
+  usecase "UC05 Jogar partida" as UC05
+  usecase "UC06 Validar resposta" as UC06
+  usecase "UC07 Atualizar pontuação" as UC07
+  usecase "UC08 Pausar partida" as UC08
+  usecase "UC09 Desistir da partida" as UC09
+  usecase "UC10 Encerrar partida\n(vitória / derrota)" as UC10
+  usecase "UC11 Consultar ranking" as UC11
+  usecase "UC12 Configurar preferências" as UC12
+  usecase "UC13 Consultar conquistas" as UC13
+  usecase "UC14 Desbloquear conquista" as UC14
+  usecase "UC15 Salvar pontuação" as UC15
+  usecase "UC16 Jogar novamente" as UC16
+}
+
+Jogador -- UC01
+Jogador -- UC02
+Jogador -- UC05
+Jogador -- UC11
+Jogador -- UC12
+Jogador -- UC13
+
+UC02 ..> UC03 : <<include>>
+UC04 ..> UC02 : <<extend>>
+UC05 ..> UC06 : <<include>>
+UC06 ..> UC07 : <<include>>
+UC14 ..> UC06 : <<extend>>
+UC08 ..> UC05 : <<extend>>
+UC09 ..> UC05 : <<extend>>
+UC05 ..> UC10 : <<include>>
+UC10 ..> UC15 : <<include>>
+UC16 ..> UC10 : <<extend>>
+@enduml
