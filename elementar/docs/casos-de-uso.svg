@@ -6,7 +6,7 @@
 </defs>
 <rect width="100%" height="100%" fill="#ffffff"/>
 <rect x="220" y="40" width="990" height="840" rx="6" fill="#fbfaf8" stroke="#333" stroke-width="1.6"/>
-<text x="715.0" y="68" text-anchor="middle" font-size="20" font-weight="bold">ELEMENTAR — jogo da tabela periódica</text>
+<text x="715.0" y="68" text-anchor="middle" font-size="20" font-weight="bold">ELEMENTAR 118 — jogo da tabela periódica</text>
 <g stroke="#333" stroke-width="2" fill="none">
   <circle cx="90" cy="400" r="16"/>
   <line x1="90" y1="416" x2="90" y2="460"/>

@@ -1,4 +1,4 @@
-# ELEMENTAR
+# ELEMENTAR 118
 
 Jogo web para lembrar os **118 elementos da tabela periódica**. A tabela começa em branco e se
 completa conforme o jogador acerta os nomes.
@@ -16,7 +16,7 @@ Projeto de Análise e Projeto de Sistemas (TI23L), UTFPR Campo Mourão, 2º seme
   arredondadas, verde para acerto, amarelo para "quase", fonte Mitr, ícones nos cantos do
   cabeçalho e mensagens em "toast" no topo.
 
-O que o ELEMENTAR acrescenta ao JetPunk: vidas, pontuação com combos, dificuldades, pausa,
+O que o ELEMENTAR 118 acrescenta ao JetPunk: vidas, pontuação com combos, dificuldades, pausa,
 ranking local, conquistas, modo em dupla e tema claro/escuro, como pede a especificação.
 
 ## Regras

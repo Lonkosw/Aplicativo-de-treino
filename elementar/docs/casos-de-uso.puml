@@ -4,7 +4,7 @@ left to right direction
 skinparam usecase { BackgroundColor #e6f4f1 }
 actor Jogador
 
-rectangle "ELEMENTAR — jogo da tabela periódica" {
+rectangle "ELEMENTAR 118 — jogo da tabela periódica" {
   usecase "UC01 Consultar instruções" as UC01
   usecase "UC02 Iniciar partida" as UC02
   usecase "UC03 Selecionar dificuldade" as UC03

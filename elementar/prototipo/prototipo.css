@@ -83,10 +83,10 @@ body {
   color: #fff;
   border-radius: 8px;
   padding: 0 8px;
-  margin-right: 2px;
-  font-size: .82em;
-  height: 1.1em;
-  vertical-align: 3px;
+  margin-left: .22em;
+  font-size: .62em;
+  height: 1.3em;
+  vertical-align: .18em;
 }
 
 /* ---------- HUD ---------- */
@@ -331,7 +331,7 @@ body {
 .mobile .topo { padding: 14px 14px 4px; }
 .mobile .icone { width: 36px; height: 36px; }
 .mobile .icone svg { width: 19px; height: 19px; }
-.mobile .logo { font-size: 24px; }
+.mobile .logo { font-size: 20px; }
 .mobile .hud { gap: 6px; padding: 6px 12px 8px; }
 .mobile .stat { min-width: 0; flex: 1; padding: 6px 6px; }
 .mobile .stat b { font-size: 20px; }

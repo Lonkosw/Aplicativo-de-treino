@@ -1,4 +1,4 @@
-# Gera docs/casos-de-uso.svg (diagrama de casos de uso do ELEMENTAR).
+# Gera docs/casos-de-uso.svg (diagrama de casos de uso do ELEMENTAR 118).
 # Uso: python3 docs/gerar-diagrama.py
 import math, os
 
@@ -56,7 +56,7 @@ s.append('''<defs>
 </defs>
 <rect width="100%" height="100%" fill="#ffffff"/>''')
 s.append(f'<rect x="220" y="40" width="{W - 250}" height="{H - 60}" rx="6" fill="#fbfaf8" stroke="#333" stroke-width="1.6"/>')
-s.append(f'<text x="{220 + (W - 250) / 2}" y="68" text-anchor="middle" font-size="20" font-weight="bold">ELEMENTAR — jogo da tabela periódica</text>')
+s.append(f'<text x="{220 + (W - 250) / 2}" y="68" text-anchor="middle" font-size="20" font-weight="bold">ELEMENTAR 118 — jogo da tabela periódica</text>')
 
 # ator
 s.append(f'''<g stroke="#333" stroke-width="2" fill="none">

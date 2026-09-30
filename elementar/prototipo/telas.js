@@ -1,4 +1,4 @@
-// Protótipo estático das telas do ELEMENTAR.
+// Protótipo estático das telas do ELEMENTAR 118.
 // Uso: prototipo.html?tela=jogo&disp=mobile&tema=claro
 
 const ICONES = {
@@ -44,7 +44,7 @@ function topo(voltar = false) {
     : `<div class="icone">${ICONES.ajuda}</div><div class="icone">${ICONES.trofeu}</div>`;
   return `<header class="topo">
     <div class="grupo">${esq}</div>
-    <div class="logo"><span class="sim">El</span>EMENTAR</div>
+    <div class="logo">ELEMENTAR<span class="sim">118</span></div>
     <div class="grupo"><div class="icone">${ICONES.medalha}</div><div class="icone">${ICONES.config}</div></div>
   </header>`;
 }
@@ -136,7 +136,7 @@ const TELAS = {
   menu() {
     const mini = tabela({ certos: [1, 2, 6, 7, 8, 26, 29, 47, 79, 80, 10, 18, 11, 17, 92, 13], classe: 'mini' });
     return topo() + `<main class="menu">
-      <div class="logo"><span class="sim">El</span>EMENTAR</div>
+      <div class="logo">ELEMENTAR<span class="sim">118</span></div>
       <p class="slogan">Quantos dos <b>118 elementos</b> da tabela periódica<br>você consegue lembrar?</p>
       ${MOBILE ? '' : mini}
       <div class="botoes">
@@ -373,7 +373,7 @@ const TELAS = {
 };
 
 // ---------- Montagem ----------
-document.title = `ELEMENTAR · ${TELA}`;
+document.title = `ELEMENTAR 118 · ${TELA}`;
 const frame = document.createElement('div');
 frame.className = `frame ${MOBILE ? 'mobile' : ''} ${TEMA === 'claro' ? 'tema-claro' : ''}`;
 frame.innerHTML = (TELAS[TELA] || TELAS.menu)();
