@@ -8,6 +8,10 @@ const config = getDefaultConfig(__dirname);
 
 config.resolver.sourceExts.push('sql');
 
+// A pasta prospecter/ e outro projeto (extensao + backend Node) que vive no
+// mesmo repositorio. O Metro nao deve indexar nem empacotar nada dela.
+config.resolver.blockList = [].concat(config.resolver.blockList ?? [], [/[\\/]prospecter[\\/].*/]);
+
 // O react-native-gifted-charts faz `require('react-native-linear-gradient')`
 // dentro de um try/catch, com fallback para `expo-linear-gradient`. So que o
 // Metro resolve imports em tempo de build: o try/catch nunca roda e o bundle
