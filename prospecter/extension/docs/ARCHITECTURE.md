@@ -410,7 +410,7 @@ O service worker MV3 dorme. A extensão foi construída assumindo isso.
 Opcional, desligada por padrão. Ativada por uma chave da Groq nas Opções.
 
 - **Endpoint:** `https://api.groq.com/openai/v1/chat/completions`
-- **Modelo:** `llama-3.3-70b-versatile`
+- **Modelo:** `openai/gpt-oss-120b` (o `llama-3.3-70b-versatile` original saiu do catálogo da Groq)
 - **Enviado:** o termo buscado e, por lead do lote, nome, categoria e endereço. Nada mais.
 - **Recebido:** para cada lead — relevância, nome limpo, segmento, tipo de negócio,
   prioridade (A/B/C) e uma mensagem de abordagem.

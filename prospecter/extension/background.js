@@ -187,7 +187,8 @@ async function baixarCSV(leads, nomeArquivo) {
 // ---------------------------------------------------------------------
 
 const IA_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
-const IA_MODELO = "llama-3.3-70b-versatile";
+// O llama-3.3-70b-versatile do apex original saiu do catálogo da Groq.
+const IA_MODELO = "openai/gpt-oss-120b";
 const IA_LOTE = 25;             // leads por requisição
 const IA_MAX_REQUISICOES = 60;  // teto de segurança por exportação
 
@@ -250,6 +251,7 @@ async function analisarLoteGroq(chave, termo, lote) {
         body: JSON.stringify({
           model: IA_MODELO,
           temperature: 0.2,
+          reasoning_effort: "low",
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: "Você é um analista de prospecção B2B. Classifica e enriquece estabelecimentos comerciais. Responde apenas JSON válido.\n\n" + prompt },

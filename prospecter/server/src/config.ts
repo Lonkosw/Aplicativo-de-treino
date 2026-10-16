@@ -20,7 +20,7 @@ export const config = {
   apiToken: texto("API_TOKEN", ""),
   dbCaminho: texto("DB_CAMINHO", "./dados/prospecter.db"),
   groqApiKey: texto("GROQ_API_KEY", ""),
-  groqModelo: texto("GROQ_MODELO", "llama-3.3-70b-versatile"),
+  groqModelo: texto("GROQ_MODELO", "openai/gpt-oss-120b"),
   groqLote: inteiro("GROQ_LOTE", 8, 1, 20),
   oferta: texto(
     "OFERTA",

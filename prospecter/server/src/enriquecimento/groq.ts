@@ -92,7 +92,7 @@ function promptSistema(oferta: string): string {
     '- "score": 0 a 100, quão bom é este lead para a oferta do usuário. Presença digital fraca (sem site, só Instagram, site fora do ar ou ruim) e negócio ativo (muitas avaliações, Instagram com seguidores) aumentam a nota. Leads "nao" recebem no máximo 20.',
     '- "nome_limpo": nome comercial formatado (sem CAPS LOCK, emojis ou slogans).',
     '- "segmento": subnicho curto (ex.: "barbearia", "clínica odontológica").',
-    '- "dores": até 4 problemas concretos que a oferta resolve, cada um citando o fato que o comprova (ex.: "não tem site: depende só do Instagram com 2.300 seguidores").',
+    '- "dores": até 4 problemas concretos que a oferta resolve. Cada dor DEVE vir de um item de sinais_detectados ou de um campo do JSON, citando esse fato (ex.: "não tem site: depende só do Instagram com 2.300 seguidores"). Se o instagram tiver "observacao", não afirme nada sobre o conteúdo do perfil.',
     '- "abordagem": primeira mensagem de WhatsApp, em português, cordial e direta, até 45 palavras, sem emojis, citando o nome do negócio e UMA dor concreta. Não prometa preços.',
     "",
     'Responda SOMENTE com JSON no formato {"leads":[...]}, um objeto por estabelecimento recebido.',
@@ -141,6 +141,9 @@ export async function analisarLote(itens: LeadParaIa[], o: OpcoesGroq): Promise<
         body: JSON.stringify({
           model: o.modelo,
           temperature: 0.2,
+          // gpt-oss raciocina antes de responder; "low" basta para classificar
+          // e economiza tokens (o limite por minuto é o gargalo no plano grátis).
+          ...(o.modelo.startsWith("openai/gpt-oss") ? { reasoning_effort: "low" } : {}),
           response_format: { type: "json_object" },
           messages: [
             { role: "system", content: promptSistema(o.oferta) },

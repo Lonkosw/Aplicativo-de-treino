@@ -220,7 +220,7 @@ lista fixa de palavras por nicho — e a extensão:
 
 **Sem a chave**, nada muda: nenhum lead é removido e essas colunas saem vazias.
 
-**Modelo usado:** `llama-3.3-70b-versatile`, via `https://api.groq.com/openai/v1/chat/completions`.
+**Modelo usado:** `openai/gpt-oss-120b`, via `https://api.groq.com/openai/v1/chat/completions`.
 
 **O que é enviado à Groq:** o termo buscado e, para cada lead do lote, nome, categoria e endereço.
 Nada mais — nem telefone, nem sua chave em log, nem qualquer identificador seu.
